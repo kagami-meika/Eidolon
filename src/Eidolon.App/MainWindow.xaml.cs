@@ -37,6 +37,14 @@ public partial class MainWindow : Window
 
         // Shortcuts are loaded from settings in ApplyShortcuts (called after settings load)
 
+        Localization.SR.LanguageChanged += () =>
+        {
+            Dispatcher.Invoke(() =>
+            {
+                Title = Localization.SR.Get("App.Title");
+            });
+        };
+
         Loaded += (_, _) =>
         {
             try
@@ -265,6 +273,14 @@ public partial class MainWindow : Window
                 RulerPModeCombo.Visibility = isFish ? Visibility.Visible : Visibility.Collapsed;
                 if (isFish) RulerPModeCombo.SelectedIndex = (int)r.FisheyePMode;
             }
+
+            // Restore full ruler geometry from persisted JSON
+            if (!string.IsNullOrWhiteSpace(s.RulerGeometry))
+            {
+                AppSettings.DeserializeRulerState(s.RulerGeometry, r);
+                // Sync UI combos to restored state
+                SyncRulerKindCombo(r.Kind);
+            }
         }
 
         AppLog.Info("Applied tools/colors from settings", "Settings");
@@ -442,6 +458,31 @@ public partial class MainWindow : Window
         RulerReset_Click(this, new RoutedEventArgs());
     }
 
+    private void SyncRulerKindCombo(RulerKind kind)
+    {
+        if (RulerKindCombo is null) return;
+        string tag = kind switch
+        {
+            RulerKind.Straight => "Straight",
+            RulerKind.Ellipse => "Ellipse",
+            RulerKind.Symmetry => "Symmetry",
+            RulerKind.VanishingPoint => "VanishingPoint",
+            RulerKind.Perspective1 => "Perspective1",
+            RulerKind.Perspective2 => "Perspective2",
+            RulerKind.Perspective3 => "Perspective3",
+            RulerKind.Fisheye6 => "Fisheye6",
+            _ => "None"
+        };
+        foreach (ComboBoxItem item in RulerKindCombo.Items)
+        {
+            if (item.Tag as string == tag)
+            {
+                RulerKindCombo.SelectedItem = item;
+                break;
+            }
+        }
+    }
+
     private void CaptureToolsAndColorsToSettings()
     {
         if (Canvas is null) return;
@@ -497,6 +538,9 @@ public partial class MainWindow : Window
             };
             s.FisheyePX = r.FisheyeP.X;
             s.FisheyePY = r.FisheyeP.Y;
+
+            // Capture full ruler geometry
+            s.RulerGeometry = AppSettings.SerializeRulerState(r);
         }
     }
 

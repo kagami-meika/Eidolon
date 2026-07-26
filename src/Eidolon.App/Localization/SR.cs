@@ -46,6 +46,9 @@ public static class SR
 
     public static string Culture => _culture;
 
+    /// <summary>Fires when the language dictionary is reloaded.</summary>
+    public static event Action? LanguageChanged;
+
     /// <summary>Switch language at runtime (e.g. from Settings).</summary>
     public static void SetLanguage(string lang)
     {
@@ -56,5 +59,6 @@ public static class SR
         Load("cn");
         if (_culture == "en")
             Load("en");
+        LanguageChanged?.Invoke();
     }
 }

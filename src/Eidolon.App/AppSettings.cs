@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Json;
 using Eidolon.App.Logging;
+using Eidolon.Core;
 
 namespace Eidolon.App;
 
@@ -80,6 +81,36 @@ public sealed class AppSettings
 
     /// <summary>Custom keyboard shortcuts. Key = command ID, Value = gesture string (e.g. "Ctrl+N").</summary>
     public Dictionary<string, string> Shortcuts { get; set; } = new();
+
+    /// <summary>Persisted ruler geometry (JSON-serialized RulerState, excludes transient fields).</summary>
+    public string RulerGeometry { get; set; } = "";
+
+    private static readonly JsonSerializerOptions RulerJsonOpts = new()
+    {
+        WriteIndented = false,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        IncludeFields = false
+    };
+
+    /// <summary>Serialize persistent ruler state to JSON string.</summary>
+    public static string SerializeRulerState(RulerState r)
+    {
+        try { return JsonSerializer.Serialize(r.Clone(), RulerJsonOpts); }
+        catch { return ""; }
+    }
+
+    /// <summary>Apply persisted ruler geometry onto a RulerState (non-destructive for missing keys).</summary>
+    public static void DeserializeRulerState(string json, RulerState target)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return;
+        try
+        {
+            var src = JsonSerializer.Deserialize<RulerState>(json, RulerJsonOpts);
+            if (src is not null)
+                target.CopyFrom(src);
+        }
+        catch { }
+    }
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {

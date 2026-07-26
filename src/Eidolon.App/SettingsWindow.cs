@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shell;
+using System.Windows.Threading;
 using Eidolon.App.Localization;
 using Microsoft.Win32;
 
@@ -130,8 +131,16 @@ public sealed class SettingsWindow : Window
                     AppSettings.Current.Language = lang;
                     AppSettings.Save();
                     Localization.SR.SetLanguage(lang);
-                    // Dynamic refresh: rebuild the window title and re-localize
-                    Title = Localization.SR.Get("Settings.Title");
+                    // Close and reopen with new language
+                    var owner = Owner;
+                    DialogResult = true;
+                    Close();
+                    Dispatcher.BeginInvoke(() =>
+                    {
+                        var dlg = new SettingsWindow { Owner = owner };
+                        dlg.ShowDialog();
+                    });
+                    return;
                 }
             }
         };
