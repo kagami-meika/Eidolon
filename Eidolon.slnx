@@ -1,0 +1,12 @@
+﻿<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Eidolon.Core/Eidolon.Core.csproj" />
+    <Project Path="src/Eidolon.Brush/Eidolon.Brush.csproj" />
+    <Project Path="src/Eidolon.IO/Eidolon.IO.csproj" />
+    <Project Path="src/Eidolon.Input/Eidolon.Input.csproj" />
+    <Project Path="src/Eidolon.App/Eidolon.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Eidolon.Tests/Eidolon.Tests.csproj" />
+  </Folder>
+</Solution>

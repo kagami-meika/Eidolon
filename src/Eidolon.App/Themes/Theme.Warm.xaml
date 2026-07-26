@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Editorial warm white -->
+  <SolidColorBrush x:Key="Eid.Bg" Color="#F9F8F6"/>
+  <SolidColorBrush x:Key="Eid.Panel" Color="#F9F8F6"/>
+  <SolidColorBrush x:Key="Eid.PanelAlt" Color="#F3F1ED"/>
+  <SolidColorBrush x:Key="Eid.Border" Color="#1C1C1C"/>
+  <SolidColorBrush x:Key="Eid.BorderSoft" Color="#1C1C1C"/>
+  <SolidColorBrush x:Key="Eid.Text" Color="#1C1C1C"/>
+  <SolidColorBrush x:Key="Eid.Muted" Color="#1C1C1C"/>
+  <SolidColorBrush x:Key="Eid.Accent" Color="#1C1C1C"/>
+  <SolidColorBrush x:Key="Eid.AccentHover" Color="#1C1C1C"/>
+  <SolidColorBrush x:Key="Eid.Track" Color="#E8E6E1"/>
+  <SolidColorBrush x:Key="Eid.Canvas" Color="#E4E1DB"/>
+  <SolidColorBrush x:Key="Eid.InvertBg" Color="#1C1C1C"/>
+  <SolidColorBrush x:Key="Eid.InvertFg" Color="#F9F8F6"/>
+  <SolidColorBrush x:Key="Eid.Selected" Color="#EDEAE4"/>
+  <!-- Soft button hover: slight darken, not full invert -->
+  <SolidColorBrush x:Key="Eid.BtnHover" Color="#EDEAE4"/>
+  <SolidColorBrush x:Key="Eid.BtnPressed" Color="#E4E1DB"/>
+  <Color x:Key="Eid.BorderSoftColor">#291C1C1C</Color>
+</ResourceDictionary>

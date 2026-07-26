@@ -1,0 +1,455 @@
+<Window x:Class="Eidolon.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
+        xmlns:controls="clr-namespace:Eidolon.App.Controls"
+        xmlns:loc="clr-namespace:Eidolon.App.Localization"
+        Title="{loc:Loc App.Title}"
+        Width="1280" Height="800"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="{DynamicResource Eid.Bg}"
+        Foreground="{DynamicResource Eid.Text}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display"
+        FontSize="11">
+  <shell:WindowChrome.WindowChrome>
+    <shell:WindowChrome CaptionHeight="32"
+                        ResizeBorderThickness="6"
+                        GlassFrameThickness="0"
+                        CornerRadius="0"
+                        UseAeroCaptionButtons="False"/>
+  </shell:WindowChrome.WindowChrome>
+
+  <Border BorderBrush="{DynamicResource Eid.Border}" BorderThickness="1" Background="{DynamicResource Eid.Bg}">
+    <DockPanel>
+      <Border DockPanel.Dock="Top" Height="32"
+              Background="{DynamicResource Eid.Bg}"
+              BorderBrush="{DynamicResource Eid.Border}" BorderThickness="0,0,0,1">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0">
+            <TextBlock Text="Eidolon" FontFamily="Georgia, Cambria, Times New Roman, serif"
+                       FontSize="14" VerticalAlignment="Center"/>
+            <TextBlock Text="{loc:Loc App.Version}" FontFamily="Georgia, Cambria, Times New Roman, serif"
+                       FontSize="12" Opacity="0.45" Margin="6,1,0,0" VerticalAlignment="Center"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" shell:WindowChrome.IsHitTestVisibleInChrome="True">
+            <Button x:Name="MinBtn" Style="{StaticResource TitleBarButton}" Content="—" FontSize="14" Click="Minimize_Click" ToolTip="{loc:Loc Common.Minimize}"/>
+            <Button x:Name="MaxBtn" Style="{StaticResource TitleBarButton}" Content="□" FontSize="14" Click="Maximize_Click" ToolTip="{loc:Loc Common.Maximize}"/>
+            <Button x:Name="CloseBtn" Style="{StaticResource TitleBarCloseButton}" Content="×" FontSize="14" Click="Close_Click" ToolTip="{loc:Loc Common.Close}"/>
+          </StackPanel>
+        </Grid>
+      </Border>
+
+      <Border DockPanel.Dock="Top" Background="{DynamicResource Eid.Bg}"
+              BorderBrush="{DynamicResource Eid.Border}" BorderThickness="0,0,0,1" Padding="10,6">
+        <DockPanel LastChildFill="False">
+          <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+            <Button Content="{loc:Loc Menu.Settings}" Click="Settings_Click"/>
+            <Border Width="1" Height="16" Background="{DynamicResource Eid.Border}" Opacity="0.2" Margin="8,0"/>
+            <Button Content="{loc:Loc Menu.New}" Click="New_Click"/>
+            <Button Content="{loc:Loc Menu.Open}" Click="Open_Click"/>
+            <Button Content="{loc:Loc Menu.Save}" Click="Save_Click"/>
+            <Button Content="{loc:Loc Menu.Export}" Click="Export_Click"/>
+            <Border Width="1" Height="16" Background="{DynamicResource Eid.Border}" Opacity="0.2" Margin="8,0"/>
+            <Button Content="{loc:Loc Menu.Undo}" Click="Undo_Click"/>
+            <Button Content="{loc:Loc Menu.Redo}" Click="Redo_Click"/>
+            <Border Width="1" Height="16" Background="{DynamicResource Eid.Border}" Opacity="0.2" Margin="8,0"/>
+            <Button Content="{loc:Loc Menu.SelectAll}" Click="SelectAll_Click"/>
+            <Button Content="{loc:Loc Menu.Deselect}" Click="Deselect_Click"/>
+            <Button Content="{loc:Loc Menu.InvertSel}" Click="InvertSel_Click"/>
+            <Border Width="1" Height="16" Background="{DynamicResource Eid.Border}" Opacity="0.2" Margin="8,0"/>
+            <Button Content="{loc:Loc Menu.ResetView}" Click="ResetView_Click"/>
+            <Button Content="{loc:Loc Menu.Mirror}" Click="Mirror_Click"/>
+          </StackPanel>
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+            <Button Content="{loc:Loc Menu.About}" Click="About_Click" Margin="0"/>
+          </StackPanel>
+        </DockPanel>
+      </Border>
+
+      <StatusBar DockPanel.Dock="Bottom" BorderBrush="{DynamicResource Eid.Border}" BorderThickness="0,1,0,0">
+        <StatusBarItem>
+          <TextBlock x:Name="StatusText" Text="{loc:Loc Status.Ready}" Opacity="0.7"/>
+        </StatusBarItem>
+        <StatusBarItem HorizontalAlignment="Right">
+          <TextBlock x:Name="ZoomText" Text="100%" Opacity="0.7"/>
+        </StatusBarItem>
+      </StatusBar>
+
+      <Grid>
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="240"/>
+          <ColumnDefinition Width="*"/>
+          <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="{DynamicResource Eid.Panel}"
+                BorderBrush="{DynamicResource Eid.Border}" BorderThickness="0,0,1,0">
+          <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10,10">
+            <StackPanel>
+              <TextBlock Text="{loc:Loc Panel.Color}" Style="{StaticResource PanelTitle}"/>
+              <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                <Border Width="28" Height="28" BorderBrush="{DynamicResource Eid.Border}" BorderThickness="1" Margin="0,0,6,0"
+                        Background="Black" MouseLeftButtonDown="FgSwatch_Click" ToolTip="{loc:Loc Tool.Fg}">
+                  <Rectangle x:Name="FgSwatch" Fill="Black"/>
+                </Border>
+                <Border Width="28" Height="28" BorderBrush="{DynamicResource Eid.Border}" BorderThickness="1"
+                        Background="White" MouseLeftButtonDown="BgSwatch_Click" ToolTip="{loc:Loc Tool.Bg}">
+                  <Rectangle x:Name="BgSwatch" Fill="White"/>
+                </Border>
+                <TextBlock Text="{loc:Loc Tool.Swap}" Style="{StaticResource FieldLabel}" Margin="10,0,0,0" VerticalAlignment="Center" Opacity="0.45"/>
+              </StackPanel>
+              <TextBlock Text="{loc:Loc Tool.Model}" Style="{StaticResource FieldLabel}"/>
+              <ComboBox x:Name="ColorModelCombo" SelectionChanged="ColorModel_Changed">
+                <ComboBoxItem Content="RGB"/>
+                <ComboBoxItem Content="HSV"/>
+                <ComboBoxItem Content="HSL"/>
+                <ComboBoxItem Content="OKLCH" IsSelected="True"/>
+              </ComboBox>
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="LabelA" Text="L" Style="{StaticResource FieldLabel}"/>
+                <TextBlock x:Name="ValA" Grid.Column="1" Text="0" Style="{StaticResource ValueLabel}"/>
+              </Grid>
+              <controls:ColorRampBar x:Name="RampA" Height="10" Margin="0,0,0,1" Channel="0" Mode="3"/>
+              <Slider x:Name="SliderA" Maximum="100" Value="50" ValueChanged="ColorChannel_Changed"/>
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="LabelB" Text="C" Style="{StaticResource FieldLabel}"/>
+                <TextBlock x:Name="ValB" Grid.Column="1" Text="0" Style="{StaticResource ValueLabel}"/>
+              </Grid>
+              <controls:ColorRampBar x:Name="RampB" Height="10" Margin="0,0,0,1" Channel="1" Mode="3"/>
+              <Slider x:Name="SliderB" Maximum="40" Value="10" ValueChanged="ColorChannel_Changed"/>
+              <Grid>
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBlock x:Name="LabelC" Text="H" Style="{StaticResource FieldLabel}"/>
+                <TextBlock x:Name="ValC" Grid.Column="1" Text="0" Style="{StaticResource ValueLabel}"/>
+              </Grid>
+              <controls:ColorRampBar x:Name="RampC" Height="10" Margin="0,0,0,1" Channel="2" Mode="3"/>
+              <Slider x:Name="SliderC" Maximum="360" Value="0" ValueChanged="ColorChannel_Changed"/>
+              <TextBlock x:Name="ColorValueText" FontSize="10" Opacity="0.55" Text="sRGB 0 0 0" Margin="0,0,0,4"/>
+              <Border Height="28" BorderBrush="{DynamicResource Eid.Border}" BorderThickness="1">
+                <Rectangle x:Name="ColorPreview" Fill="Black"/>
+              </Border>
+              <TextBlock Text="{loc:Loc Tool.Mix}" Style="{StaticResource FieldLabel}" Margin="0,8,0,2"/>
+              <Border Height="16" BorderBrush="{DynamicResource Eid.Border}" BorderThickness="1" Cursor="Hand"
+                      MouseLeftButtonDown="MixBar_Click" MouseMove="MixBar_Move">
+                <Rectangle x:Name="MixBar"/>
+              </Border>
+              <Border Height="1" Background="{DynamicResource Eid.Border}" Opacity="0.12" Margin="0,12,0,10"/>
+              <TextBlock Text="{loc:Loc Panel.Tools}" Style="{StaticResource PanelTitle}"/>
+              <TextBlock x:Name="ToolModeLabel" Text="{loc:Loc Mode.Raster}" Style="{StaticResource FieldLabel}" Margin="0,0,0,4"/>
+              <ComboBox x:Name="ToolCombo" SelectionChanged="ToolCombo_Changed"/>
+
+              <StackPanel x:Name="RasterQuickOpts" Margin="0,2,0,0">
+                <CheckBox x:Name="StraightLineCheck" Content="{loc:Loc Tool.StraightLine}"
+                          Checked="StraightLine_Changed" Unchecked="StraightLine_Changed"/>
+              </StackPanel>
+              <StackPanel x:Name="VectorQuickOpts" Visibility="Collapsed" Margin="0,4,0,0">
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Tool.LineWidth}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="VectorWidthVal" Grid.Column="1" Text="3" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="VectorWidthSlider" Minimum="0.5" Maximum="40" Value="3" ValueChanged="VectorWidth_Changed"/>
+              </StackPanel>
+
+              <StackPanel x:Name="ToolOptionsPanel" Visibility="Collapsed" Margin="0,12,0,0">
+                <TextBlock x:Name="ToolOptionsTitle" Text="{loc:Loc Panel.ToolOptions}" Style="{StaticResource PanelTitle}"/>
+                <StackPanel x:Name="GradientOptions" Visibility="Collapsed">
+                  <TextBlock Text="{loc:Loc Tool.GradType}" Style="{StaticResource FieldLabel}"/>
+                  <ComboBox x:Name="GradientTypeCombo" SelectionChanged="GradientType_Changed">
+                    <ComboBoxItem Content="{loc:Loc Tool.GradLinear}" IsSelected="True"/>
+                    <ComboBoxItem Content="{loc:Loc Tool.GradRadial}"/>
+                  </ComboBox>
+                  <CheckBox x:Name="GradTransparentCheck" Content="{loc:Loc Tool.GradTransparent}"
+                            Checked="GradTransparent_Changed" Unchecked="GradTransparent_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="SelectOptions" Visibility="Collapsed">
+                  <TextBlock Text="{loc:Loc Tool.SelMode}" Style="{StaticResource FieldLabel}"/>
+                  <ComboBox x:Name="SelectModeCombo" SelectionChanged="SelectMode_Changed">
+                    <ComboBoxItem Content="{loc:Loc Tool.SelNew}" IsSelected="True"/>
+                    <ComboBoxItem Content="{loc:Loc Tool.SelAdd}"/>
+                    <ComboBoxItem Content="{loc:Loc Tool.SelSub}"/>
+                    <ComboBoxItem Content="{loc:Loc Tool.SelIntersect}"/>
+                  </ComboBox>
+                </StackPanel>
+                <StackPanel x:Name="FillOptions" Visibility="Collapsed">
+                  <TextBlock Text="{loc:Loc Tool.FillHint}" Style="{StaticResource FieldLabel}"/>
+                </StackPanel>
+                <StackPanel x:Name="FrameOptions" Visibility="Collapsed">
+                  <TextBlock Text="{loc:Loc Tool.FrameHint}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock Text="{loc:Loc Tool.LineWidth}" Style="{StaticResource FieldLabel}" Margin="0,6,0,0"/>
+                  <Slider x:Name="FrameWidthSlider" Minimum="1" Maximum="20" Value="2" ValueChanged="FrameWidth_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="VectorExtraOptions" Visibility="Collapsed">
+                  <TextBlock Text="{loc:Loc Tool.VectorNodeHint}" Style="{StaticResource FieldLabel}" TextWrapping="Wrap" Opacity="0.7"/>
+                </StackPanel>
+              </StackPanel>
+
+              <StackPanel x:Name="BrushParamsPanel" Margin="0,12,0,0">
+                <TextBlock Text="{loc:Loc Panel.Brush}" Style="{StaticResource PanelTitle}"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.Size}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="BrushSizeVal" Grid.Column="1" Text="8" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="BrushSizeSlider" Minimum="1" Maximum="200" Value="8" ValueChanged="BrushSizeSlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.MinSize}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="MinSizeVal" Grid.Column="1" Text="0.08" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="MinSizeSlider" Minimum="0" Maximum="1" Value="0.08" ValueChanged="MinSizeSlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.Opacity}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="OpacityVal" Grid.Column="1" Text="1.00" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="OpacitySlider" Minimum="0" Maximum="1" Value="1" ValueChanged="OpacitySlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.Flow}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="FlowVal" Grid.Column="1" Text="1.00" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="FlowSlider" Minimum="0" Maximum="1" Value="1" ValueChanged="FlowSlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.Hardness}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="HardnessVal" Grid.Column="1" Text="0.94" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="HardnessSlider" Minimum="0" Maximum="1" Value="0.94" ValueChanged="HardnessSlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.SoftEdge}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="SoftEdgeVal" Grid.Column="1" Text="0.04" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="SoftEdgeSlider" Minimum="0" Maximum="1" Value="0.04" ValueChanged="SoftEdgeSlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.Blend}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="BlendVal" Grid.Column="1" Text="0.00" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="BlendSlider" Minimum="0" Maximum="1" Value="0" ValueChanged="BlendSlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.Spacing}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="SpacingVal" Grid.Column="1" Text="0.10" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="SpacingSlider" Minimum="0.02" Maximum="0.5" Value="0.1" ValueChanged="SpacingSlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.Stabilizer}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="StabVal" Grid.Column="1" Text="0.25" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="BrushStabSlider" Minimum="0" Maximum="1" Value="0.25" ValueChanged="BrushStabSlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.Texture}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="TextureVal" Grid.Column="1" Text="0.00" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="TextureSlider" Minimum="0" Maximum="1" Value="0" ValueChanged="TextureSlider_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Brush.Smudge}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="SmudgeVal" Grid.Column="1" Text="0.55" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="SmudgeSlider" Minimum="0" Maximum="1" Value="0.55" ValueChanged="SmudgeSlider_Changed"/>
+                <CheckBox x:Name="SizeByPressureCheck" Content="{loc:Loc Brush.SizePressure}" IsChecked="True" Checked="PressureFlags_Changed" Unchecked="PressureFlags_Changed"/>
+                <CheckBox x:Name="OpacityByPressureCheck" Content="{loc:Loc Brush.OpacityPressure}" Checked="PressureFlags_Changed" Unchecked="PressureFlags_Changed"/>
+                <CheckBox x:Name="FlowByPressureCheck" Content="{loc:Loc Brush.FlowPressure}" Checked="PressureFlags_Changed" Unchecked="PressureFlags_Changed"/>
+                <CheckBox x:Name="AntiAliasCheck" Content="{loc:Loc Brush.AntiAlias}" IsChecked="True" Checked="AntiAlias_Changed" Unchecked="AntiAlias_Changed"/>
+                <CheckBox x:Name="LockAlphaBrushCheck" Content="{loc:Loc Brush.LockAlpha}" Checked="LockAlphaBrush_Changed" Unchecked="LockAlphaBrush_Changed"/>
+                <CheckBox x:Name="StraightLineBrushCheck" Content="{loc:Loc Brush.Straight}" Checked="StraightLine_Changed" Unchecked="StraightLine_Changed"/>
+              </StackPanel>
+
+              <Border Height="1" Background="{DynamicResource Eid.Border}" Opacity="0.12" Margin="0,12,0,10"/>
+
+              <StackPanel x:Name="RulerPanel" Margin="0,0,0,0">
+                <TextBlock Text="{loc:Loc Ruler.Title}" Style="{StaticResource PanelTitle}"/>
+                <ComboBox x:Name="RulerKindCombo" SelectionChanged="RulerKind_Changed">
+                  <ComboBoxItem Content="{loc:Loc Ruler.None}" Tag="None" IsSelected="True"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.Straight}" Tag="Straight"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.Ellipse}" Tag="Ellipse"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.Symmetry}" Tag="Symmetry"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.VanishingPoint}" Tag="VanishingPoint"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.Perspective1}" Tag="Perspective1"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.Perspective2}" Tag="Perspective2"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.Perspective3}" Tag="Perspective3"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.Fisheye6}" Tag="Fisheye6"/>
+                </ComboBox>
+                <CheckBox x:Name="RulerVisibleCheck" Content="{loc:Loc Ruler.Visible}" IsChecked="True"
+                          Checked="RulerFlags_Changed" Unchecked="RulerFlags_Changed"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Ruler.SnapStrength}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="RulerSnapVal" Grid.Column="1" Text="12" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="RulerSnapSlider" Minimum="0" Maximum="40" Value="12" ValueChanged="RulerSnap_Changed"/>
+                <StackPanel x:Name="RulerLineToggles" Margin="0,4,0,0" Visibility="Collapsed">
+                  <CheckBox x:Name="RulerLine0Check" Content="{loc:Loc Ruler.LineSnap0}" Foreground="#DC3232"
+                            Checked="RulerLineSnap_Changed" Unchecked="RulerLineSnap_Changed" IsChecked="True"/>
+                  <CheckBox x:Name="RulerLine1Check" Content="{loc:Loc Ruler.LineSnap1}" Foreground="#28AA46"
+                            Checked="RulerLineSnap_Changed" Unchecked="RulerLineSnap_Changed" IsChecked="True"/>
+                  <CheckBox x:Name="RulerLine2Check" Content="{loc:Loc Ruler.LineSnap2}" Foreground="#3266E6"
+                            Checked="RulerLineSnap_Changed" Unchecked="RulerLineSnap_Changed" IsChecked="True"/>
+                </StackPanel>
+                <ComboBox x:Name="RulerPModeCombo" Margin="0,4,0,0" Visibility="Collapsed"
+                          SelectionChanged="RulerPMode_Changed">
+                  <ComboBoxItem Content="{loc:Loc Ruler.PModeOff}" Tag="0" IsSelected="True"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.PModeVisual}" Tag="1"/>
+                  <ComboBoxItem Content="{loc:Loc Ruler.PModeSnap}" Tag="2"/>
+                </ComboBox>
+                <TextBlock Text="{loc:Loc Ruler.SelectHint}" Style="{StaticResource FieldLabel}" Opacity="0.55" TextWrapping="Wrap" Margin="0,4,0,0"/>
+                <Button Content="{loc:Loc Ruler.Reset}" Height="24" Margin="0,4,0,0" Click="RulerReset_Click"/>
+              </StackPanel>
+
+              <Border Height="1" Background="{DynamicResource Eid.Border}" Opacity="0.12" Margin="0,12,0,10"/>
+
+              <StackPanel x:Name="TimelapsePanel" Margin="0,0,0,0">
+                <TextBlock Text="{loc:Loc Timelapse.Title}" Style="{StaticResource PanelTitle}"/>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Timelapse.Dir}" Style="{StaticResource FieldLabel}"/>
+                </Grid>
+                <Grid>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBox x:Name="TimelapseDirText" Text="" Height="22" FontSize="10" IsReadOnly="True" VerticalContentAlignment="Center" Padding="4,0"/>
+                  <Button Grid.Column="1" Content="{loc:Loc Timelapse.Browse}" Height="22" Padding="6,0" Margin="4,0,0,0" Click="TimelapseBrowse_Click"/>
+                </Grid>
+                <Grid Margin="0,4,0,0">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Timelapse.FileName}" Style="{StaticResource FieldLabel}"/>
+                </Grid>
+                <TextBox x:Name="TimelapseFileNameText" Text="timelapse" Height="22" FontSize="10" VerticalContentAlignment="Center" Padding="4,0"/>
+                <Grid Margin="0,4,0,0">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Text="{loc:Loc Timelapse.Fps}" Style="{StaticResource FieldLabel}"/>
+                  <TextBlock x:Name="TimelapseFpsVal" Grid.Column="1" Text="30" Style="{StaticResource ValueLabel}"/>
+                </Grid>
+                <Slider x:Name="TimelapseFpsSlider" Minimum="1" Maximum="60" Value="30" ValueChanged="TimelapseFps_Changed" Margin="0,0,0,6"/>
+                <Button x:Name="TimelapseToggleBtn" Content="{loc:Loc Timelapse.Start}" Height="26" Margin="0,0,0,0" Click="TimelapseToggle_Click"/>
+                <TextBlock x:Name="TimelapseStatusText" Text="{loc:Loc Timelapse.StatusIdle}" Style="{StaticResource FieldLabel}" Margin="0,4,0,0"/>
+              </StackPanel>
+
+              <TextBlock TextWrapping="Wrap" Margin="0,12,0,0" FontSize="10" Opacity="0.4"
+                         Text="{loc:Loc Status.HintShort}"/>
+            </StackPanel>
+          </ScrollViewer>
+        </Border>
+
+        <Border Grid.Column="1" Background="{DynamicResource Eid.Canvas}" ClipToBounds="True">
+          <controls:CanvasView x:Name="Canvas"/>
+        </Border>
+
+        <Border Grid.Column="2" Background="{DynamicResource Eid.Panel}"
+                BorderBrush="{DynamicResource Eid.Border}" BorderThickness="1,0,0,0">
+          <DockPanel Margin="8,8">
+            <TextBlock DockPanel.Dock="Top" Text="{loc:Loc Panel.Layers}" Style="{StaticResource PanelTitle}"/>
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{loc:Loc Layer.Opacity}" Style="{StaticResource FieldLabel}"/>
+                <TextBlock x:Name="LayerOpacityVal" Grid.Column="1" Text="100%" Style="{StaticResource ValueLabel}"/>
+              </Grid>
+              <Slider x:Name="LayerOpacity" Minimum="0" Maximum="100" Value="100" ValueChanged="LayerOpacity_Changed"/>
+              <TextBlock Text="{loc:Loc Layer.Blend}" Style="{StaticResource FieldLabel}"/>
+              <ComboBox x:Name="BlendCombo" SelectionChanged="BlendCombo_Changed">
+                <ComboBoxItem Content="{loc:Loc Blend.Normal}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.Multiply}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.Screen}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.Overlay}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.Darken}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.Lighten}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.ColorDodge}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.ColorBurn}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.LinearDodge}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.LinearBurn}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.HardLight}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.SoftLight}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.Difference}"/>
+                <ComboBoxItem Content="{loc:Loc Blend.Exclusion}"/>
+              </ComboBox>
+              <CheckBox x:Name="LayerVisible" Content="{loc:Loc Layer.Visible}" IsChecked="True"
+                        Checked="LayerVisible_Changed" Unchecked="LayerVisible_Changed"/>
+              <CheckBox x:Name="LayerClip" Content="{loc:Loc Layer.Clip}"
+                        Checked="LayerClip_Changed" Unchecked="LayerClip_Changed"/>
+              <CheckBox x:Name="LayerLockAlpha" Content="{loc:Loc Layer.LockAlpha}"
+                        Checked="LayerLockAlpha_Changed" Unchecked="LayerLockAlpha_Changed"/>
+              <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <Button Content="{loc:Loc Layer.NewRaster}" Click="NewLayer_Click"/>
+                <Button Content="{loc:Loc Layer.NewVector}" Click="NewVectorLayer_Click"/>
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <Button Content="{loc:Loc Layer.NewFrame}" Click="NewFrameLayer_Click"/>
+                <Button Content="{loc:Loc Layer.Delete}" Click="DeleteLayer_Click"/>
+                <Button Content="{loc:Loc Layer.Refresh}" Click="RefreshLayers_Click"/>
+              </StackPanel>
+            </StackPanel>
+            <ListBox x:Name="LayerList" SelectionChanged="LayerList_SelectionChanged"/>
+          </DockPanel>
+        </Border>
+      </Grid>
+    </DockPanel>
+  </Border>
+</Window>
