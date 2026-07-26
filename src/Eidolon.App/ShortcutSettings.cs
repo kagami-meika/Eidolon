@@ -57,6 +57,22 @@ public static class ShortcutRegistry
         new("SwapColors",         "Tool.Swap",       "Quick"),
         new("StraightLine",       "Tool.StraightLine","Quick"),
         new("Settings",           "Menu.Settings",   "Quick"),
+        // Ruler
+        new("Ruler.None",             "Ruler.None",             "Ruler"),
+        new("Ruler.Straight",         "Ruler.Straight",         "Ruler"),
+        new("Ruler.Ellipse",          "Ruler.Ellipse",          "Ruler"),
+        new("Ruler.Symmetry",         "Ruler.Symmetry",         "Ruler"),
+        new("Ruler.VanishingPoint",   "Ruler.VanishingPoint",   "Ruler"),
+        new("Ruler.Perspective1",     "Ruler.Perspective1",     "Ruler"),
+        new("Ruler.Perspective2",     "Ruler.Perspective2",     "Ruler"),
+        new("Ruler.Perspective3",     "Ruler.Perspective3",     "Ruler"),
+        new("Ruler.Fisheye6",         "Ruler.Fisheye6",         "Ruler"),
+        new("Ruler.ToggleVisible",    "Ruler.Visible",          "Ruler"),
+        new("Ruler.ToggleSnap0",      "Ruler.LineSnap0",        "Ruler"),
+        new("Ruler.ToggleSnap1",      "Ruler.LineSnap1",        "Ruler"),
+        new("Ruler.ToggleSnap2",      "Ruler.LineSnap2",        "Ruler"),
+        new("Ruler.PModeCycle",       "Ruler.PModeSnap",        "Ruler"),
+        new("Ruler.Reset",            "Ruler.Reset",            "Ruler"),
     };
 
     /// <summary>Parse a gesture string like "Ctrl+N" into Key + ModifierKeys.</summary>

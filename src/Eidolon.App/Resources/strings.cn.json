@@ -5,7 +5,7 @@
   "App.StartupFailed": "启动失败，详见日志：\n{0}\n\n{1}",
   "App.UnhandledError": "发生未处理错误，程序可能不稳定。\n日志：\n{0}\n\n{1}",
   "App.AboutTitle": "关于 Eidolon",
-  "App.AboutBody": "Eidolon  beta-01\n开源绘画工具",
+  "App.AboutBody": "Eidolon  v0.2.0\n开源绘画工具",
 
   "Common.Ok": "确定",
   "Common.Cancel": "取消",
@@ -30,7 +30,7 @@
   "Menu.About": "关于",
   "Menu.Settings": "设置",
 
-  "Settings.Title": "设置",
+  "Settings.Language": "界面语言",
   "Settings.Canvas": "画布默认",
   "Settings.DefaultWidth": "默认宽度 (px)",
   "Settings.DefaultHeight": "默认高度 (px)",
@@ -94,6 +94,13 @@
   "Panel.Brush": "笔刷",
   "Panel.Layers": "图层",
   "Panel.ToolOptions": "工具选项",
+  "Panel.Ruler": "标尺",
+  "Panel.File": "文件",
+  "Panel.Edit": "编辑",
+  "Panel.View": "视图",
+  "Panel.Mode": "模式",
+  "Panel.Tool": "工具",
+  "Panel.Quick": "快捷",
 
   "Mode.Raster": "光栅",
   "Mode.Vector": "矢量",

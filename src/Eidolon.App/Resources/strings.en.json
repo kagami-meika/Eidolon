@@ -5,7 +5,7 @@
   "App.StartupFailed": "Startup failed. See log:\n{0}\n\n{1}",
   "App.UnhandledError": "Unhandled error. App may be unstable.\nLog:\n{0}\n\n{1}",
   "App.AboutTitle": "About Eidolon",
-  "App.AboutBody": "Eidolon  beta-01\nOpen-source paint tool",
+  "App.AboutBody": "Eidolon  v0.2.0\nOpen-source painting tool",
 
   "Common.Ok": "OK",
   "Common.Cancel": "Cancel",
@@ -30,7 +30,7 @@
   "Menu.About": "About",
   "Menu.Settings": "Settings",
 
-  "Settings.Title": "Settings",
+  "Settings.Language": "Language",
   "Settings.Canvas": "Canvas defaults",
   "Settings.DefaultWidth": "Default width (px)",
   "Settings.DefaultHeight": "Default height (px)",
@@ -94,6 +94,13 @@
   "Panel.Brush": "Brush",
   "Panel.Layers": "Layers",
   "Panel.ToolOptions": "Tool Options",
+  "Panel.Ruler": "Ruler",
+  "Panel.File": "File",
+  "Panel.Edit": "Edit",
+  "Panel.View": "View",
+  "Panel.Mode": "Mode",
+  "Panel.Tool": "Tool",
+  "Panel.Quick": "Quick",
 
   "Mode.Raster": "Raster",
   "Mode.Vector": "Vector",

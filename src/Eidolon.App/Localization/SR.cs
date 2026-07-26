@@ -45,4 +45,16 @@ public static class SR
     }
 
     public static string Culture => _culture;
+
+    /// <summary>Switch language at runtime (e.g. from Settings).</summary>
+    public static void SetLanguage(string lang)
+    {
+        lang = (lang ?? "cn").StartsWith("en", StringComparison.OrdinalIgnoreCase) ? "en" : "cn";
+        if (_culture == lang) return;
+        _culture = lang;
+        _strings.Clear();
+        Load("cn");
+        if (_culture == "en")
+            Load("en");
+    }
 }

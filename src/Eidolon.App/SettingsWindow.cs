@@ -26,6 +26,7 @@ public sealed class SettingsWindow : Window
     private readonly Slider _webpQuality;
     private readonly TextBlock _webpQualityVal;
     private readonly CheckBox _exportAlpha;
+    private readonly ComboBox _language;
 
     public SettingsWindow()
     {
@@ -107,6 +108,34 @@ public sealed class SettingsWindow : Window
         _colorModel.Items.Add(new ComboBoxItem { Content = "OKLCH", Tag = 3 });
         _colorModel.SelectedIndex = Math.Clamp(s.DefaultColorModel, 0, 3);
         body.Children.Add(_colorModel);
+
+        // Language (hot-switch)
+        body.Children.Add(Section(SR.Get("Settings.Language")));
+        _language = new ComboBox { Height = 28, Margin = new Thickness(0, 0, 0, 8) };
+        _language.Items.Add(new ComboBoxItem { Content = "中文", Tag = "cn" });
+        _language.Items.Add(new ComboBoxItem { Content = "English", Tag = "en" });
+        _language.SelectedValue = s.Language ?? "cn";
+        foreach (ComboBoxItem item in _language.Items)
+        {
+            if ((string)item.Tag == (s.Language ?? "cn"))
+            { _language.SelectedItem = item; break; }
+        }
+        _language.SelectionChanged += (_, _) =>
+        {
+            if (_language.SelectedItem is ComboBoxItem sel)
+            {
+                var lang = (string)sel.Tag;
+                if (lang != AppSettings.Current.Language)
+                {
+                    AppSettings.Current.Language = lang;
+                    AppSettings.Save();
+                    Localization.SR.SetLanguage(lang);
+                    // Dynamic refresh: rebuild the window title and re-localize
+                    Title = Localization.SR.Get("Settings.Title");
+                }
+            }
+        };
+        body.Children.Add(_language);
 
         // Timelapse
         body.Children.Add(Section(SR.Get("Settings.Timelapse")));

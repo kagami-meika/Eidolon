@@ -332,6 +332,21 @@ public partial class MainWindow : Window
             case "SwapColors":      Canvas?.Document?.Colors.Swap(); Canvas?.InvalidateVisual(); break;
             case "StraightLine":    ToggleStraightLine(); break;
             case "Settings":        OpenSettings(); break;
+            case "Ruler.None":           SetRulerKind("None"); break;
+            case "Ruler.Straight":       SetRulerKind("Straight"); break;
+            case "Ruler.Ellipse":        SetRulerKind("Ellipse"); break;
+            case "Ruler.Symmetry":       SetRulerKind("Symmetry"); break;
+            case "Ruler.VanishingPoint": SetRulerKind("VanishingPoint"); break;
+            case "Ruler.Perspective1":   SetRulerKind("Perspective1"); break;
+            case "Ruler.Perspective2":   SetRulerKind("Perspective2"); break;
+            case "Ruler.Perspective3":   SetRulerKind("Perspective3"); break;
+            case "Ruler.Fisheye6":       SetRulerKind("Fisheye6"); break;
+            case "Ruler.ToggleVisible":  ToggleRulerVisible(); break;
+            case "Ruler.ToggleSnap0":    ToggleRulerSnapLine(0); break;
+            case "Ruler.ToggleSnap1":    ToggleRulerSnapLine(1); break;
+            case "Ruler.ToggleSnap2":    ToggleRulerSnapLine(2); break;
+            case "Ruler.PModeCycle":     CycleRulerPMode(); break;
+            case "Ruler.Reset":          ResetRuler(); break;
         }
     }
 
@@ -373,6 +388,59 @@ public partial class MainWindow : Window
     private void ExportCurrent() { SaveDocument(true); }
     private void ToggleStraightLine() { if (Canvas is not null) Canvas.StraightLineMode = !Canvas.StraightLineMode; }
     private void OpenSettings() { Settings_Click(this, new RoutedEventArgs()); }
+
+    private void SetRulerKind(string tag)
+    {
+        if (Canvas?.Document is null || RulerKindCombo is null) return;
+        foreach (ComboBoxItem item in RulerKindCombo.Items)
+        {
+            if (item.Tag as string == tag)
+            {
+                RulerKindCombo.SelectedItem = item;
+                break;
+            }
+        }
+    }
+
+    private void ToggleRulerVisible()
+    {
+        if (Canvas?.Document is null || RulerVisibleCheck is null) return;
+        RulerVisibleCheck.IsChecked = !(RulerVisibleCheck.IsChecked == true);
+    }
+
+    private void ToggleRulerSnapLine(int channel)
+    {
+        if (Canvas?.Document is null) return;
+        var r = Canvas.Document.Rulers;
+        switch (channel)
+        {
+            case 0: r.PerspectiveLine0Enabled = !r.PerspectiveLine0Enabled; if (RulerLine0Check is not null) RulerLine0Check.IsChecked = r.PerspectiveLine0Enabled; break;
+            case 1: r.PerspectiveLine1Enabled = !r.PerspectiveLine1Enabled; if (RulerLine1Check is not null) RulerLine1Check.IsChecked = r.PerspectiveLine1Enabled; break;
+            case 2: r.PerspectiveLine2Enabled = !r.PerspectiveLine2Enabled; if (RulerLine2Check is not null) RulerLine2Check.IsChecked = r.PerspectiveLine2Enabled; break;
+        }
+        Canvas.InvalidateVisual();
+    }
+
+    private void CycleRulerPMode()
+    {
+        if (Canvas?.Document is null) return;
+        var r = Canvas.Document.Rulers;
+        r.FisheyePMode = r.FisheyePMode switch
+        {
+            FisheyePMode.Off => FisheyePMode.VisualOnly,
+            FisheyePMode.VisualOnly => FisheyePMode.Snappable,
+            FisheyePMode.Snappable => FisheyePMode.Off,
+            _ => FisheyePMode.Off
+        };
+        if (RulerPModeCombo is not null)
+            RulerPModeCombo.SelectedIndex = (int)r.FisheyePMode;
+        Canvas.InvalidateVisual();
+    }
+
+    private void ResetRuler()
+    {
+        RulerReset_Click(this, new RoutedEventArgs());
+    }
 
     private void CaptureToolsAndColorsToSettings()
     {
