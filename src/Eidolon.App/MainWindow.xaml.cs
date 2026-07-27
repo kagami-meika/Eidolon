@@ -35,8 +35,6 @@ public partial class MainWindow : Window
         CommandBindings.Add(new CommandBinding(ApplicationCommands.Undo, (_, _) => Canvas.Undo()));
         CommandBindings.Add(new CommandBinding(ApplicationCommands.Redo, (_, _) => Canvas.Redo()));
 
-        // Shortcuts are loaded from settings in ApplyShortcuts (called after settings load)
-
         Localization.SR.LanguageChanged += () =>
         {
             Dispatcher.Invoke(() =>
@@ -50,13 +48,13 @@ public partial class MainWindow : Window
             try
             {
             AppLog.Info("MainWindow Loaded", "UI");
-            AppSettings.Load();
+
+            // Language / LogLevel are cold-switched in App.OnStartup before this window is created.
             ApplySettingsToUi();
             var st = AppSettings.Current;
             Canvas.NewDocument(st.DefaultCanvasWidth, st.DefaultCanvasHeight);
             if (Canvas.Document is not null) LocalizeNewDocument(Canvas.Document);
             ApplyToolsAndColorsFromSettings();
-            ApplyShortcuts();
             Canvas.HistoryChanged += (_, _) => UpdateTitle();
             BindHistory(Canvas.Document);
             Canvas.DocumentChanged += (_, _) =>
@@ -197,6 +195,18 @@ public partial class MainWindow : Window
             TimelapseFpsSlider.Value = s.TimelapseFps;
     }
 
+    private static void ApplyLanguage()
+    {
+        var lang = AppSettings.Current.Language ?? "cn";
+        Localization.SR.SetLanguage(lang);
+    }
+
+    private static void ApplyLogLevel()
+    {
+        if (Enum.TryParse<LogLevel>(AppSettings.Current.LogLevel, true, out var lv))
+            AppLog.SetMinimumLevel(lv);
+    }
+
     private void ApplyToolsAndColorsFromSettings()
     {
         if (Canvas is null) return;
@@ -284,86 +294,6 @@ public partial class MainWindow : Window
         }
 
         AppLog.Info("Applied tools/colors from settings", "Settings");
-    }
-
-    /// <summary>Register shortcut key bindings from settings (default: none).</summary>
-    private void ApplyShortcuts()
-    {
-        InputBindings.Clear();
-        var s = AppSettings.Current;
-        s.Shortcuts ??= new();
-        foreach (var entry in ShortcutRegistry.Entries)
-        {
-            if (!s.Shortcuts.TryGetValue(entry.Id, out var gesture) || string.IsNullOrWhiteSpace(gesture))
-                continue;
-            var parsed = ShortcutRegistry.ParseGesture(gesture);
-            if (parsed is not ({ } key, { } mods)) continue;
-
-            // Use a custom RoutedUICommand so we can route to ExecuteCommandById
-            var cmd = new RoutedUICommand(entry.Id, entry.Id, typeof(MainWindow));
-            InputBindings.Add(new KeyBinding(cmd, key, mods));
-            CommandBindings.Add(new CommandBinding(cmd, (_, _) => ExecuteCommandById(entry.Id)));
-        }
-    }
-
-    /// <summary>Execute a command by its shortcut registry ID.</summary>
-    public void ExecuteCommandById(string id)
-    {
-        switch (id)
-        {
-            case "File.New":        NewDocument(); break;
-            case "File.Open":       OpenDocument(); break;
-            case "File.Save":       SaveDocument(false); break;
-            case "File.SaveAs":     SaveDocument(true); break;
-            case "File.Export":     ExportCurrent(); break;
-            case "Edit.Undo":       Canvas?.Undo(); break;
-            case "Edit.Redo":       Canvas?.Redo(); break;
-            case "Edit.SelectAll":  SelectAll(); break;
-            case "Edit.Deselect":   Deselect(); break;
-            case "Edit.InvertSel":  InvertSelection(); break;
-            case "View.Reset":      ResetView(); break;
-            case "View.Mirror":     MirrorCanvas(); break;
-            case "Mode.Raster":     SetMode("Raster"); break;
-            case "Mode.Vector":     SetMode("Vector"); break;
-            case "Mode.Frame":      SetMode("Frame"); break;
-            case "Tool.Brush":      SelectTool("Brush"); break;
-            case "Tool.Pencil":     SelectTool("Pencil"); break;
-            case "Tool.Airbrush":   SelectTool("Airbrush"); break;
-            case "Tool.Eraser":     SelectTool("Eraser"); break;
-            case "Tool.Watercolor": SelectTool("Watercolor"); break;
-            case "Tool.Marker":     SelectTool("Marker"); break;
-            case "Tool.Smudge":     SelectTool("Smudge"); break;
-            case "Tool.Fill":       SelectTool("Fill"); break;
-            case "Tool.Gradient":   SelectTool("Gradient"); break;
-            case "Tool.Select":     SelectTool("Select"); break;
-            case "Tool.RectSelect": SelectTool("RectSelect"); break;
-            case "Tool.Lasso":      SelectTool("Lasso"); break;
-            case "Tool.MagicWand":  SelectTool("MagicWand"); break;
-            case "Tool.VectorPen":    SelectTool("VectorPen"); break;
-            case "Tool.VectorEraser": SelectTool("VectorEraser"); break;
-            case "Tool.VectorNode":   SelectTool("VectorNode"); break;
-            case "Tool.VectorFill":   SelectTool("VectorFill"); break;
-            case "Tool.VectorSpline": SelectTool("VectorSpline"); break;
-            case "Tool.FrameRect":  SelectTool("FrameRect"); break;
-            case "SwapColors":      Canvas?.Document?.Colors.Swap(); Canvas?.InvalidateVisual(); break;
-            case "StraightLine":    ToggleStraightLine(); break;
-            case "Settings":        OpenSettings(); break;
-            case "Ruler.None":           SetRulerKind("None"); break;
-            case "Ruler.Straight":       SetRulerKind("Straight"); break;
-            case "Ruler.Ellipse":        SetRulerKind("Ellipse"); break;
-            case "Ruler.Symmetry":       SetRulerKind("Symmetry"); break;
-            case "Ruler.VanishingPoint": SetRulerKind("VanishingPoint"); break;
-            case "Ruler.Perspective1":   SetRulerKind("Perspective1"); break;
-            case "Ruler.Perspective2":   SetRulerKind("Perspective2"); break;
-            case "Ruler.Perspective3":   SetRulerKind("Perspective3"); break;
-            case "Ruler.Fisheye6":       SetRulerKind("Fisheye6"); break;
-            case "Ruler.ToggleVisible":  ToggleRulerVisible(); break;
-            case "Ruler.ToggleSnap0":    ToggleRulerSnapLine(0); break;
-            case "Ruler.ToggleSnap1":    ToggleRulerSnapLine(1); break;
-            case "Ruler.ToggleSnap2":    ToggleRulerSnapLine(2); break;
-            case "Ruler.PModeCycle":     CycleRulerPMode(); break;
-            case "Ruler.Reset":          ResetRuler(); break;
-        }
     }
 
     private void SelectTool(string name)

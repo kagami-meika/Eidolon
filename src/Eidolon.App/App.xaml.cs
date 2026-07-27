@@ -15,15 +15,34 @@ public partial class App : Application
         AppLog.Initialize(e.Args, cwd);
         AppSettings.Load();
 
+        // Apply cold-switched settings (Language, LogLevel) BEFORE any UI is created
+        // so that {loc:Loc ...} in XAML and early SR.Get calls see the correct language.
+        try
+        {
+            var lang = AppSettings.Current.Language ?? "cn";
+            Localization.SR.SetLanguage(lang);
+
+            if (Enum.TryParse<LogLevel>(AppSettings.Current.LogLevel, true, out var lv))
+                AppLog.SetMinimumLevel(lv);
+        }
+        catch (Exception ex)
+        {
+            AppLog.Error(ex, "Apply startup settings failed", "Settings");
+        }
+
         // Global exception hooks
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
-        AppLog.Info($"OnStartup begin. base={AppContext.BaseDirectory}");
+        AppLog.Info($"OnStartup begin. base={AppContext.BaseDirectory} lang={Localization.SR.Culture}");
         try
         {
             base.OnStartup(e);
+            // Create main window after cold settings applied (no StartupUri — language must be ready first).
+            var main = new MainWindow();
+            MainWindow = main;
+            main.Show();
             AppLog.Info("OnStartup base completed.");
         }
         catch (Exception ex)

@@ -1,0 +1,7 @@
+<Project>
+  <!-- Centralize all compile outputs under repo-level artifacts/ (no per-project bin/obj). -->
+  <PropertyGroup>
+    <UseArtifactsOutput>true</UseArtifactsOutput>
+    <ArtifactsPath>$(MSBuildThisFileDirectory)artifacts</ArtifactsPath>
+  </PropertyGroup>
+</Project>

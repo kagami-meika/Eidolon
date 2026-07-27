@@ -27,6 +27,15 @@ public static class AppLog
     public const long DefaultMaxTotalLogBytes = 1 * 1024 * 1024;
 
     public static LogLevel MinimumLevel => _min;
+
+    /// <summary>Change the minimum log level at runtime (cold-switch from Settings).</summary>
+    public static void SetMinimumLevel(LogLevel level)
+    {
+        if (level == _min) return;
+        Write(_min > level ? LogLevel.Warn : LogLevel.Info, "AppLog", $"Log level changed: {_min} -> {level}");
+        _min = level;
+    }
+
     public static string LogDirectory => _logDir;
     public static string LogFilePath => _logFile;
     public static bool IsInitialized => _writer != null;

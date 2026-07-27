@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>0.2.0.1</Version>
-    <AssemblyVersion>0.1.0.1</AssemblyVersion>
-    <FileVersion>0.1.0.1</FileVersion>
-    <InformationalVersion>beta-01</InformationalVersion>
+    <Version>0.2.1.0</Version>
+    <AssemblyVersion>0.2.1.0</AssemblyVersion>
+    <FileVersion>0.2.1.0</FileVersion>
+    <InformationalVersion>0.2.1.0</InformationalVersion>
     <Product>Eidolon</Product>
     <AssemblyTitle>Eidolon</AssemblyTitle>
     <OutputType>WinExe</OutputType>
@@ -25,9 +25,16 @@
     <RuntimeHostConfigurationOption Include="Switch.System.Windows.Input.Stylus.EnablePointerSupport" Value="true" />
   </ItemGroup>
 
+  <!-- WithCulture=false: filenames like strings.en.json must NOT become satellite assemblies. -->
   <ItemGroup>
-    <EmbeddedResource Include="Resources\strings.cn.json" />
-    <EmbeddedResource Include="Resources\strings.en.json" />
+    <EmbeddedResource Include="Resources\strings.cn.json">
+      <LogicalName>Eidolon.App.Resources.strings.cn.json</LogicalName>
+      <WithCulture>false</WithCulture>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Resources\strings.en.json">
+      <LogicalName>Eidolon.App.Resources.strings.en.json</LogicalName>
+      <WithCulture>false</WithCulture>
+    </EmbeddedResource>
   </ItemGroup>
 
   <!-- Bundle ffmpeg.exe if present in tools/ -->

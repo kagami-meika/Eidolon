@@ -1,11 +1,11 @@
 {
-  "App.Title": "Eidolon v0.2.0",
-  "App.Version": "v0.2.0",
+  "App.Title": "Eidolon v0.2.1",
+  "App.Version": "v0.2.1",
   "App.InitFailed": "Window init failed:\n{0}\n\nLog:\n{1}",
   "App.StartupFailed": "Startup failed. See log:\n{0}\n\n{1}",
   "App.UnhandledError": "Unhandled error. App may be unstable.\nLog:\n{0}\n\n{1}",
   "App.AboutTitle": "About Eidolon",
-  "App.AboutBody": "Eidolon  v0.2.0\nOpen-source painting tool",
+  "App.AboutBody": "Eidolon  v0.2.1\nOpen-source painting tool",
 
   "Common.Ok": "OK",
   "Common.Cancel": "Cancel",
@@ -30,6 +30,7 @@
   "Menu.About": "About",
   "Menu.Settings": "Settings",
 
+  "Settings.Title": "Settings",
   "Settings.Language": "Language",
   "Settings.Canvas": "Canvas defaults",
   "Settings.DefaultWidth": "Default width (px)",
@@ -267,11 +268,10 @@
   "Ruler.PModeVisual": "Ref point P: Visual only",
   "Ruler.PModeSnap": "Ref point P: Snappable",
 
-  "Shortcut.Title": "Shortcut Settings",
-  "Shortcut.Hint": "Click the shortcut area, then press the desired key combination. Esc to cancel.",
-  "Shortcut.Unbound": "(unbound)",
-  "Shortcut.Listening": "Press keys…",
-  "Shortcut.Clear": "Clear binding",
-  "Shortcut.ResetAll": "Reset all",
-  "Settings.Shortcuts": "Shortcut settings…"
+  "Settings.LogLevel": "Log Level",
+  "LogLevel.Trace": "Trace (All)",
+  "LogLevel.Debug": "Debug",
+  "LogLevel.Info": "Info",
+  "LogLevel.Warn": "Warn",
+  "LogLevel.Error": "Error"
 }

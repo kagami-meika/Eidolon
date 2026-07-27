@@ -1,11 +1,11 @@
 {
-  "App.Title": "Eidolon v0.2.0",
-  "App.Version": "v0.2.0",
+  "App.Title": "Eidolon v0.2.1",
+  "App.Version": "v0.2.1",
   "App.InitFailed": "初始化窗口失败：\n{0}\n\n日志：\n{1}",
   "App.StartupFailed": "启动失败，详见日志：\n{0}\n\n{1}",
   "App.UnhandledError": "发生未处理错误，程序可能不稳定。\n日志：\n{0}\n\n{1}",
   "App.AboutTitle": "关于 Eidolon",
-  "App.AboutBody": "Eidolon  v0.2.0\n开源绘画工具",
+  "App.AboutBody": "Eidolon  v0.2.1\n开源绘画工具",
 
   "Common.Ok": "确定",
   "Common.Cancel": "取消",
@@ -30,6 +30,7 @@
   "Menu.About": "关于",
   "Menu.Settings": "设置",
 
+  "Settings.Title": "设置",
   "Settings.Language": "界面语言",
   "Settings.Canvas": "画布默认",
   "Settings.DefaultWidth": "默认宽度 (px)",
@@ -267,11 +268,10 @@
   "Ruler.PModeVisual": "参考点 P：仅显示",
   "Ruler.PModeSnap": "参考点 P：可吸附",
 
-  "Shortcut.Title": "快捷键设置",
-  "Shortcut.Hint": "点击右侧快捷键区域，然后按下想要绑定的组合键。Esc 取消绑定。",
-  "Shortcut.Unbound": "（未绑定）",
-  "Shortcut.Listening": "按下组合键…",
-  "Shortcut.Clear": "清除绑定",
-  "Shortcut.ResetAll": "全部清除",
-  "Settings.Shortcuts": "快捷键设置…"
+  "Settings.LogLevel": "日志等级",
+  "LogLevel.Trace": "Trace（全部）",
+  "LogLevel.Debug": "Debug（调试）",
+  "LogLevel.Info": "Info（信息）",
+  "LogLevel.Warn": "Warn（警告）",
+  "LogLevel.Error": "Error（错误）"
 }

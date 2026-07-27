@@ -4,8 +4,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shell;
-using System.Windows.Threading;
 using Eidolon.App.Localization;
+using Eidolon.App.Logging;
 using Microsoft.Win32;
 
 namespace Eidolon.App;
@@ -28,6 +28,7 @@ public sealed class SettingsWindow : Window
     private readonly TextBlock _webpQualityVal;
     private readonly CheckBox _exportAlpha;
     private readonly ComboBox _language;
+    private readonly ComboBox _logLevel;
 
     public SettingsWindow()
     {
@@ -110,12 +111,11 @@ public sealed class SettingsWindow : Window
         _colorModel.SelectedIndex = Math.Clamp(s.DefaultColorModel, 0, 3);
         body.Children.Add(_colorModel);
 
-        // Language (hot-switch)
+        // Language (cold-switch)
         body.Children.Add(Section(SR.Get("Settings.Language")));
         _language = new ComboBox { Height = 28, Margin = new Thickness(0, 0, 0, 8) };
         _language.Items.Add(new ComboBoxItem { Content = "中文", Tag = "cn" });
         _language.Items.Add(new ComboBoxItem { Content = "English", Tag = "en" });
-        _language.SelectedValue = s.Language ?? "cn";
         foreach (ComboBoxItem item in _language.Items)
         {
             if ((string)item.Tag == (s.Language ?? "cn"))
@@ -130,21 +130,33 @@ public sealed class SettingsWindow : Window
                 {
                     AppSettings.Current.Language = lang;
                     AppSettings.Save();
-                    Localization.SR.SetLanguage(lang);
-                    // Close and reopen with new language
-                    var owner = Owner;
-                    DialogResult = true;
-                    Close();
-                    Dispatcher.BeginInvoke(() =>
-                    {
-                        var dlg = new SettingsWindow { Owner = owner };
-                        dlg.ShowDialog();
-                    });
-                    return;
                 }
             }
         };
         body.Children.Add(_language);
+
+        // Log level (cold-switch)
+        body.Children.Add(Section(SR.Get("Settings.LogLevel")));
+        _logLevel = new ComboBox { Height = 28, Margin = new Thickness(0, 0, 0, 8) };
+        _logLevel.Items.Add(new ComboBoxItem { Content = SR.Get("LogLevel.Info"), Tag = "Info" });
+        _logLevel.Items.Add(new ComboBoxItem { Content = SR.Get("LogLevel.Debug"), Tag = "Debug" });
+        _logLevel.Items.Add(new ComboBoxItem { Content = SR.Get("LogLevel.Trace"), Tag = "Trace" });
+        _logLevel.Items.Add(new ComboBoxItem { Content = SR.Get("LogLevel.Warn"), Tag = "Warn" });
+        _logLevel.Items.Add(new ComboBoxItem { Content = SR.Get("LogLevel.Error"), Tag = "Error" });
+        foreach (ComboBoxItem item in _logLevel.Items)
+        {
+            if ((string)item.Tag == (s.LogLevel ?? "Info"))
+            { _logLevel.SelectedItem = item; break; }
+        }
+        _logLevel.SelectionChanged += (_, _) =>
+        {
+            if (_logLevel.SelectedItem is ComboBoxItem sel && Enum.TryParse<LogLevel>((string)sel.Tag, true, out var lv))
+            {
+                AppSettings.Current.LogLevel = lv.ToString();
+                AppSettings.Save();
+            }
+        };
+        body.Children.Add(_logLevel);
 
         // Timelapse
         body.Children.Add(Section(SR.Get("Settings.Timelapse")));
@@ -258,18 +270,6 @@ public sealed class SettingsWindow : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(0, 12, 0, 0)
         };
-        var shortcutsBtn = new Button
-        {
-            Content = SR.Get("Settings.Shortcuts"),
-            MinWidth = 100,
-            Padding = new Thickness(10, 7, 10, 7)
-        };
-        shortcutsBtn.Click += (_, _) =>
-        {
-            var dlg = new ShortcutSettingsWindow { Owner = this };
-            dlg.ShowDialog();
-        };
-        buttons.Children.Add(shortcutsBtn);
         var cancel = new Button { Content = SR.Get("Common.Cancel"), MinWidth = 80, Padding = new Thickness(14, 7, 14, 7), IsCancel = true };
         var ok = new Button { Content = SR.Get("Common.Ok"), MinWidth = 80, Padding = new Thickness(14, 7, 14, 7), Margin = new Thickness(8, 0, 0, 0), IsDefault = true };
         ok.Click += (_, _) =>
@@ -300,7 +300,8 @@ public sealed class SettingsWindow : Window
                 WebpQuality = (int)_webpQuality.Value,
                 ExportPreserveTransparency = _exportAlpha.IsChecked == true,
                 Brush = AppSettings.Current.Brush,
-                Colors = AppSettings.Current.Colors
+                Colors = AppSettings.Current.Colors,
+                LogLevel = AppSettings.Current.LogLevel
             };
             AppSettings.Save(next);
             DialogResult = true;

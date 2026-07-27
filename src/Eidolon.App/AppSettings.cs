@@ -51,6 +51,8 @@ public sealed class AppSettings
     public string TimelapseFileName { get; set; } = "timelapse";
     public int TimelapseFps { get; set; } = 30;
     public string Language { get; set; } = "cn";
+    /// <summary>Minimum log level (cold-switchable from Settings).</summary>
+    public string LogLevel { get; set; } = "Info";
 
     // Export
     /// <summary>true = use JPEG quality compression; false = max quality (~100)</summary>
@@ -78,9 +80,6 @@ public sealed class AppSettings
     /// <summary>Fisheye6 reference point P position (doc coords).</summary>
     public double FisheyePX { get; set; } = 400;
     public double FisheyePY { get; set; } = 200;
-
-    /// <summary>Custom keyboard shortcuts. Key = command ID, Value = gesture string (e.g. "Ctrl+N").</summary>
-    public Dictionary<string, string> Shortcuts { get; set; } = new();
 
     /// <summary>Persisted ruler geometry (JSON-serialized RulerState, excludes transient fields).</summary>
     public string RulerGeometry { get; set; } = "";
@@ -184,6 +183,8 @@ public sealed class AppSettings
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Eidolon", "Timelapse");
         if (s.Language is not ("cn" or "en"))
             s.Language = "cn";
+        if (s.LogLevel is not ("Trace" or "Debug" or "Info" or "Warn" or "Error"))
+            s.LogLevel = "Info";
 
         s.Brush ??= new BrushToolSettings();
         s.Colors ??= new ColorToolSettings();

@@ -56,8 +56,8 @@ Tests → Core, Brush, IO
 
 | 字段 | 值 |
 |---|---|
-| InformationalVersion | beta-01 |
-| AssemblyVersion | 0.1.0.1 |
+| InformationalVersion | 0.2.1.0 |
+| AssemblyVersion | 0.2.1.0 |
 | 涉及 csproj | App / Core / Brush / IO / Input |
 
 ## 当前能力边界（beta-01）

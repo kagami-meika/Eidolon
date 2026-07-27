@@ -6,5 +6,9 @@ obj/
 *.eidolon
 *.tmp
 
+# SDK Artifacts output (Directory.Build.props UseArtifactsOutput)
+artifacts/*
+!artifacts/.gitkeep
+
 Logs/*
 !Logs/.gitkeep
