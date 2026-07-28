@@ -198,105 +198,128 @@
 
               <StackPanel x:Name="BrushParamsPanel" Margin="0,12,0,0">
                 <TextBlock Text="{loc:Loc Panel.Brush}" Style="{StaticResource PanelTitle}"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.Size}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="BrushSizeVal" Grid.Column="1" Text="8" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="BrushSizeSlider" Minimum="1" Maximum="200" Value="8" ValueChanged="BrushSizeSlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.MinSize}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="MinSizeVal" Grid.Column="1" Text="0.08" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="MinSizeSlider" Minimum="0" Maximum="1" Value="0.08" ValueChanged="MinSizeSlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.Opacity}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="OpacityVal" Grid.Column="1" Text="1.00" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="OpacitySlider" Minimum="0" Maximum="1" Value="1" ValueChanged="OpacitySlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.Flow}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="FlowVal" Grid.Column="1" Text="1.00" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="FlowSlider" Minimum="0" Maximum="1" Value="1" ValueChanged="FlowSlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.Hardness}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="HardnessVal" Grid.Column="1" Text="0.94" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="HardnessSlider" Minimum="0" Maximum="1" Value="0.94" ValueChanged="HardnessSlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.SoftEdge}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="SoftEdgeVal" Grid.Column="1" Text="0.04" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="SoftEdgeSlider" Minimum="0" Maximum="1" Value="0.04" ValueChanged="SoftEdgeSlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.Blend}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="BlendVal" Grid.Column="1" Text="0.00" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="BlendSlider" Minimum="0" Maximum="1" Value="0" ValueChanged="BlendSlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.Spacing}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="SpacingVal" Grid.Column="1" Text="0.10" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="SpacingSlider" Minimum="0.02" Maximum="0.5" Value="0.1" ValueChanged="SpacingSlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.Stabilizer}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="StabVal" Grid.Column="1" Text="0.25" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="BrushStabSlider" Minimum="0" Maximum="1" Value="0.25" ValueChanged="BrushStabSlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.Texture}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="TextureVal" Grid.Column="1" Text="0.00" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="TextureSlider" Minimum="0" Maximum="1" Value="0" ValueChanged="TextureSlider_Changed"/>
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                  </Grid.ColumnDefinitions>
-                  <TextBlock Text="{loc:Loc Brush.Smudge}" Style="{StaticResource FieldLabel}"/>
-                  <TextBlock x:Name="SmudgeVal" Grid.Column="1" Text="0.55" Style="{StaticResource ValueLabel}"/>
-                </Grid>
-                <Slider x:Name="SmudgeSlider" Minimum="0" Maximum="1" Value="0.55" ValueChanged="SmudgeSlider_Changed"/>
+                <!-- Each named row is toggled by UpdateBrushParamVisibility(kind). -->
+                <StackPanel x:Name="BrushParamSize">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.Size}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="BrushSizeVal" Grid.Column="1" Text="8" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="BrushSizeSlider" Minimum="1" Maximum="200" Value="8" ValueChanged="BrushSizeSlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamMinSize">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.MinSize}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="MinSizeVal" Grid.Column="1" Text="0.08" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="MinSizeSlider" Minimum="0" Maximum="1" Value="0.08" ValueChanged="MinSizeSlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamOpacity">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.Opacity}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="OpacityVal" Grid.Column="1" Text="1.00" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="OpacitySlider" Minimum="0" Maximum="1" Value="1" ValueChanged="OpacitySlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamFlow">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.Flow}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="FlowVal" Grid.Column="1" Text="1.00" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="FlowSlider" Minimum="0" Maximum="1" Value="1" ValueChanged="FlowSlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamHardness">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.Hardness}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="HardnessVal" Grid.Column="1" Text="0.94" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="HardnessSlider" Minimum="0" Maximum="1" Value="0.94" ValueChanged="HardnessSlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamSoftEdge">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.SoftEdge}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="SoftEdgeVal" Grid.Column="1" Text="0.04" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="SoftEdgeSlider" Minimum="0" Maximum="1" Value="0.04" ValueChanged="SoftEdgeSlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamBlend">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.Blend}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="BlendVal" Grid.Column="1" Text="0.00" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="BlendSlider" Minimum="0" Maximum="1" Value="0" ValueChanged="BlendSlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamSpacing">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.Spacing}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="SpacingVal" Grid.Column="1" Text="0.10" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="SpacingSlider" Minimum="0.02" Maximum="0.5" Value="0.1" ValueChanged="SpacingSlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamStabilizer">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.Stabilizer}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="StabVal" Grid.Column="1" Text="0.25" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="BrushStabSlider" Minimum="0" Maximum="1" Value="0.25" ValueChanged="BrushStabSlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamTexture">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.Texture}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="TextureVal" Grid.Column="1" Text="0.00" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="TextureSlider" Minimum="0" Maximum="1" Value="0" ValueChanged="TextureSlider_Changed"/>
+                </StackPanel>
+                <StackPanel x:Name="BrushParamSmudge">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="*"/>
+                      <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="{loc:Loc Brush.Smudge}" Style="{StaticResource FieldLabel}"/>
+                    <TextBlock x:Name="SmudgeVal" Grid.Column="1" Text="0.55" Style="{StaticResource ValueLabel}"/>
+                  </Grid>
+                  <Slider x:Name="SmudgeSlider" Minimum="0" Maximum="1" Value="0.55" ValueChanged="SmudgeSlider_Changed"/>
+                </StackPanel>
                 <CheckBox x:Name="SizeByPressureCheck" Content="{loc:Loc Brush.SizePressure}" IsChecked="True" Checked="PressureFlags_Changed" Unchecked="PressureFlags_Changed"/>
                 <CheckBox x:Name="OpacityByPressureCheck" Content="{loc:Loc Brush.OpacityPressure}" Checked="PressureFlags_Changed" Unchecked="PressureFlags_Changed"/>
                 <CheckBox x:Name="FlowByPressureCheck" Content="{loc:Loc Brush.FlowPressure}" Checked="PressureFlags_Changed" Unchecked="PressureFlags_Changed"/>
@@ -439,11 +462,12 @@
               <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                 <Button Content="{loc:Loc Layer.NewRaster}" Click="NewLayer_Click"/>
                 <Button Content="{loc:Loc Layer.NewVector}" Click="NewVectorLayer_Click"/>
+                <Button Content="{loc:Loc Layer.NewFrame}" Click="NewFrameLayer_Click"/>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                <Button Content="{loc:Loc Layer.NewFrame}" Click="NewFrameLayer_Click"/>
                 <Button Content="{loc:Loc Layer.Delete}" Click="DeleteLayer_Click"/>
                 <Button Content="{loc:Loc Layer.Refresh}" Click="RefreshLayers_Click"/>
+                <Button Content="{loc:Loc Layer.Clear}" Click="ClearLayer_Click"/>
               </StackPanel>
             </StackPanel>
             <ListBox x:Name="LayerList" SelectionChanged="LayerList_SelectionChanged"/>

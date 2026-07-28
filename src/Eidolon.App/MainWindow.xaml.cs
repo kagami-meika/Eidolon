@@ -634,6 +634,71 @@ public partial class MainWindow : Window
         UpdateTitle();
     }
 
+    private void ClearLayer_Click(object sender, RoutedEventArgs e)
+    {
+        if (Canvas?.Document is null) return;
+        var doc = Canvas.Document;
+        var layer = doc.ActiveLayer;
+        if (layer is null) return;
+
+        switch (layer)
+        {
+            case RasterLayer raster:
+            {
+                if (raster.Surface.Tiles.Count == 0) return;
+                var keys = raster.Surface.Tiles.Keys.ToList();
+                var before = raster.Surface.SnapshotTiles(keys);
+                // Empty tiles so redo via RestoreTiles removes them completely.
+                var after = new Dictionary<long, Tile>(keys.Count);
+                foreach (var k in keys)
+                    after[k] = new Tile(raster.Surface.TileSize);
+                raster.Surface.Clear();
+                doc.History.PushAlreadyDone(new TileEditCommand(raster.Id, before, after, "Clear"), doc);
+                break;
+            }
+            case VectorLayer vector:
+            {
+                if (vector.Strokes.Count == 0) return;
+                var before = vector.CloneStrokes();
+                vector.Strokes.Clear();
+                vector.InvalidateCache();
+                vector.RasterCache = null;
+                doc.History.PushAlreadyDone(
+                    new VectorLayerEditCommand(vector.Id, before, new List<VectorStroke>(), "Clear"), doc);
+                break;
+            }
+            case FrameLayer frame:
+            {
+                if (frame.Frames.Count == 0) return;
+                var before = frame.Frames
+                    .Select(f => new FrameRect { Id = f.Id, Bounds = f.Bounds })
+                    .ToList();
+                frame.Frames.Clear();
+                frame.InvalidateCache();
+                frame.RasterCache = null;
+                doc.History.PushAlreadyDone(
+                    new FrameLayerEditCommand(frame.Id, before, new List<FrameRect>(), "Clear"), doc);
+                break;
+            }
+            case TextLayer text:
+            {
+                if (string.IsNullOrEmpty(text.Content)) return;
+                var before = text.Content;
+                text.Content = string.Empty;
+                text.CacheDirty = true;
+                text.RasterCache = null;
+                doc.History.PushAlreadyDone(
+                    new TextLayerEditCommand(text.Id, before, string.Empty, "Clear"), doc);
+                break;
+            }
+            default:
+                return;
+        }
+
+        Canvas.FullRedraw();
+        UpdateTitle();
+    }
+
     private void RefreshLayers_Click(object sender, RoutedEventArgs e) => RefreshLayerList();
 
     private void RefreshLayerList()
@@ -831,6 +896,7 @@ public partial class MainWindow : Window
             case "water":
             case "marker":
             case "smudge":
+            case "willow":
                 Canvas.Tool = CanvasTool.Brush;
                 Canvas.Preset = tag switch
                 {
@@ -840,6 +906,7 @@ public partial class MainWindow : Window
                     "water" => BrushPreset.DefaultWatercolor(),
                     "marker" => BrushPreset.DefaultMarker(),
                     "smudge" => BrushPreset.DefaultSmudge(),
+                    "willow" => BrushPreset.DefaultWillowLeaf(),
                     _ => BrushPreset.DefaultPencil()
                 };
                 Canvas.BrushSize = Canvas.Preset.Params.SizePx;
@@ -1035,6 +1102,7 @@ public partial class MainWindow : Window
                     ("Tool.Select","select"),
                     ("Tool.Pencil","pencil"),("Tool.Airbrush","air"),("Tool.Eraser","eraser"),("Tool.Brush","brush"),
                     ("Tool.Watercolor","water"),("Tool.Marker","marker"),("Tool.Smudge","smudge"),
+                    ("Tool.WillowLeaf","willow"),
                     ("Tool.FillBucket","fill"),("Tool.Gradient","grad"),("Tool.RectSelect","selrect"),
                     ("Tool.Lasso","lasso"),("Tool.MagicWand","wand")
                 };
@@ -1119,7 +1187,65 @@ public partial class MainWindow : Window
         if (SmudgeSlider != null) SmudgeSlider.Value = p.SmudgeStrength;
         if (StraightLineBrushCheck != null) StraightLineBrushCheck.IsChecked = Canvas.StraightLineMode;
         UpdateBrushValueLabels();
+        UpdateBrushParamVisibility(Canvas.Preset.Kind);
         _colorUiSilent = false;
+    }
+
+    /// <summary>
+    /// Show only parameters that StrokeSession actually uses for the active brush kind.
+    /// WillowLeaf is polygon fill (Opacity/Stabilizer/LockAlpha/Straight only).
+    /// Smudge uses dab mask + SmudgeStrength, not paint Flow/Blend/Texture.
+    /// Stamp tools share Size/Opacity/Hardness/SoftEdge/Spacing/Texture/AA; Flow is
+    /// most relevant for Airbrush; Blend for Brush/Watercolor/Marker.
+    /// </summary>
+    private void UpdateBrushParamVisibility(BrushToolKind kind)
+    {
+        static void Set(UIElement? el, bool on)
+        {
+            if (el != null)
+                el.Visibility = on ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        bool willow = kind == BrushToolKind.WillowLeaf;
+        bool smudge = kind == BrushToolKind.Smudge;
+        bool eraser = kind == BrushToolKind.Eraser;
+        bool stamp = !willow; // dab-based path in PixelPaintOp
+        bool paintStamp = stamp && !smudge && !eraser; // deposits FG color
+
+        // Dab geometry / spacing
+        Set(BrushParamSize, stamp);
+        Set(BrushParamMinSize, stamp);
+        Set(BrushParamHardness, stamp);
+        Set(BrushParamSoftEdge, stamp);
+        Set(BrushParamSpacing, stamp);
+        Set(AntiAliasCheck, stamp);
+        Set(SizeByPressureCheck, stamp);
+
+        // Always useful for path tools
+        Set(BrushParamStabilizer, true);
+        Set(StraightLineBrushCheck, true);
+
+        // Opacity: stamp paint + willow fill; smudge uses cover*opacity as mix weight
+        Set(BrushParamOpacity, true);
+        // Pressure opacity: stamp path only (willow fill ignores pressure)
+        Set(OpacityByPressureCheck, stamp);
+
+        // Flow: multiplies into stamp opacity; hide for willow + smudge (smudge uses SmudgeStrength)
+        bool showFlow = paintStamp || eraser;
+        Set(BrushParamFlow, showFlow);
+        Set(FlowByPressureCheck, showFlow);
+
+        // Blend: only when depositing color mixed with destination
+        Set(BrushParamBlend, kind is BrushToolKind.Brush or BrushToolKind.Watercolor or BrushToolKind.Marker);
+
+        // Texture grain on stamp coverage (not smudge branch / not willow fill)
+        Set(BrushParamTexture, paintStamp);
+
+        // Smudge strength only for smudge tool
+        Set(BrushParamSmudge, smudge);
+
+        // Lock alpha: willow + paint/smudge stamps; eraser already targets alpha
+        Set(LockAlphaBrushCheck, !eraser);
     }
 
     private void UpdateBrushValueLabels()

@@ -44,6 +44,154 @@ public class CoreTests
     }
 
     [Fact]
+    public void WillowLeaf_OverlapTrue_FillsSolid()
+    {
+        var doc = new Document(64, 64);
+        var layer = doc.ActiveRasterLayer!;
+        var preset = BrushPreset.DefaultWillowLeaf();
+        preset.Params.Opacity = 1f;
+        var session = new StrokeSession(doc, layer, preset, ColorRgba8.Black, 0, willowOverlap: true);
+        // Axis-aligned square path → closed polygon with solid interior.
+        session.Begin(new PointerSample(0, new Float2(10, 10), 1, PointerPhase.Press));
+        session.Move(new PointerSample(0.02, new Float2(50, 10), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.04, new Float2(50, 50), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.06, new Float2(10, 50), 1, PointerPhase.Move));
+        var cmd = session.End();
+        Assert.NotNull(cmd);
+        Assert.True(layer.Surface.GetPixel(30, 30).A > 200);
+        Assert.True(layer.Surface.GetPixel(2, 2).A == 0);
+    }
+
+    [Fact]
+    public void WillowLeaf_OverlapFalse_SelfOverlapRestoresBase()
+    {
+        var doc = new Document(64, 64);
+        var layer = doc.ActiveRasterLayer!;
+        // Pre-paint a marker pixel that must survive outside the hole / path.
+        layer.Surface.SetPixel(2, 2, ColorRgba8.FromRgb(1, 2, 3));
+        var preset = BrushPreset.DefaultWillowLeaf();
+        preset.Params.Opacity = 1f;
+        // figure-8 / bow-tie: two triangles sharing center → even-odd hole at center band.
+        // Path: (10,10)→(50,10)→(10,50)→(50,50)→ close (self-crossing hourglass).
+        var session = new StrokeSession(doc, layer, preset, ColorRgba8.Black, 0, willowOverlap: false);
+        session.Begin(new PointerSample(0, new Float2(10, 10), 1, PointerPhase.Press));
+        session.Move(new PointerSample(0.02, new Float2(50, 10), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.04, new Float2(10, 50), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.06, new Float2(50, 50), 1, PointerPhase.Move));
+        var cmd = session.End();
+        Assert.NotNull(cmd);
+
+        // Outer lobes should be painted (odd coverage).
+        Assert.True(layer.Surface.GetPixel(20, 15).A > 200, "top-left lobe should paint");
+        Assert.True(layer.Surface.GetPixel(44, 45).A > 200, "bottom-right lobe should paint");
+
+        // Near self-crossing center: even-odd leaves a hole → pre-stroke transparent.
+        // Sample a few candidates around the diagonal crossing.
+        bool holeFound =
+            layer.Surface.GetPixel(30, 30).A < 40 ||
+            layer.Surface.GetPixel(32, 32).A < 40 ||
+            layer.Surface.GetPixel(28, 28).A < 40;
+        Assert.True(holeFound, "self-overlap region should restore pre-stroke (hole)");
+
+        // Untouched pre-paint preserved.
+        var keep = layer.Surface.GetPixel(2, 2);
+        Assert.Equal(1, keep.R);
+        Assert.Equal(2, keep.G);
+        Assert.Equal(3, keep.B);
+    }
+
+    [Fact]
+    public void WillowLeaf_LongPath_DoesNotHang()
+    {
+        var doc = new Document(128, 128);
+        var layer = doc.ActiveRasterLayer!;
+        var preset = BrushPreset.DefaultWillowLeaf();
+        var session = new StrokeSession(doc, layer, preset, ColorRgba8.Black, 0, willowOverlap: true);
+        session.Begin(new PointerSample(0, new Float2(64, 20), 1, PointerPhase.Press));
+        // Dense spiral-ish path with many Move samples (would freeze without restore/throttle).
+        for (int i = 1; i <= 400; i++)
+        {
+            double a = i * 0.12;
+            float r = 8f + i * 0.12f;
+            float x = 64f + r * MathF.Cos((float)a);
+            float y = 64f + r * MathF.Sin((float)a);
+            session.Move(new PointerSample(i * 0.001, new Float2(x, y), 1, PointerPhase.Move));
+        }
+        var cmd = session.End();
+        Assert.NotNull(cmd);
+        Assert.True(layer.Surface.Tiles.Count > 0);
+    }
+
+    [Fact]
+    public void WillowLeaf_AxisRect_NoInteriorHorizontalGaps()
+    {
+        // Pixel-center half-open Y must not drop interior scanlines (classic 横线 gap bug).
+        var doc = new Document(64, 64);
+        var layer = doc.ActiveRasterLayer!;
+        var preset = BrushPreset.DefaultWillowLeaf();
+        preset.Params.Opacity = 1f;
+        var session = new StrokeSession(doc, layer, preset, ColorRgba8.Black, 0, willowOverlap: true);
+        session.Begin(new PointerSample(0, new Float2(10, 10), 1, PointerPhase.Press));
+        session.Move(new PointerSample(0.02, new Float2(50, 10), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.04, new Float2(50, 50), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.06, new Float2(10, 50), 1, PointerPhase.Move));
+        Assert.NotNull(session.End());
+
+        // Interior column: every row whose pixel center is inside [10,50) must be solid.
+        for (int y = 10; y <= 49; y++)
+            Assert.True(layer.Surface.GetPixel(30, y).A > 200, $"gap at y={y}");
+        // Outside top/bottom half-open bounds stay empty.
+        Assert.Equal(0, layer.Surface.GetPixel(30, 9).A);
+        Assert.Equal(0, layer.Surface.GetPixel(30, 50).A);
+    }
+
+    [Fact]
+    public void WillowLeaf_NearHorizontalEdge_CoversConsecutiveRows()
+    {
+        // Slightly non-horizontal top/bottom edges (old Ceiling(topY) row indexing skipped rows).
+        var doc = new Document(64, 64);
+        var layer = doc.ActiveRasterLayer!;
+        var preset = BrushPreset.DefaultWillowLeaf();
+        preset.Params.Opacity = 1f;
+        var session = new StrokeSession(doc, layer, preset, ColorRgba8.Black, 0, willowOverlap: true);
+        session.Begin(new PointerSample(0, new Float2(8, 12.2f), 1, PointerPhase.Press));
+        session.Move(new PointerSample(0.02, new Float2(56, 12.8f), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.04, new Float2(56, 40.3f), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.06, new Float2(8, 39.7f), 1, PointerPhase.Move));
+        Assert.NotNull(session.End());
+
+        // Mid band should be continuous — no single missing horizontal line.
+        int gaps = 0;
+        for (int y = 14; y <= 38; y++)
+        {
+            if (layer.Surface.GetPixel(32, y).A < 200)
+                gaps++;
+        }
+        Assert.True(gaps == 0, $"near-horizontal edges left {gaps} interior gaps");
+    }
+
+    [Fact]
+    public void Stabilizer_PressureIsSeparateChannel()
+    {
+        var stab = new Stabilizer();
+        stab.Reset(0.85f);
+
+        // First sample seeds both channels independently (shared timestamp).
+        var p0 = stab.Filter(new Float2(0, 0), 0.0);
+        float pr0 = stab.FilterPressure(1f, 0.0);
+        Assert.Equal(0f, p0.X);
+        Assert.Equal(1f, pr0);
+
+        // Jump position and drop pressure: each 1€ channel smooths on its own.
+        var p1 = stab.Filter(new Float2(100, 0), 1.0 / 120.0);
+        float pr1 = stab.FilterPressure(0.1f, 1.0 / 120.0);
+        Assert.InRange(p1.X, 1f, 99f);
+        Assert.InRange(pr1, 0.11f, 0.99f);
+        Assert.True(pr1 > 0.1f); // still lagging toward 0.1, not raw
+        Assert.True(p1.X < 100f);
+    }
+
+    [Fact]
     public void History_UndoRedo()
     {
         var doc = new Document(32, 32);

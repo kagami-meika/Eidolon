@@ -9,7 +9,8 @@ public enum BrushToolKind
     Marker,
     Binary,
     Eraser,
-    Smudge
+    Smudge,
+    WillowLeaf
 }
 
 public sealed class BrushParameters
@@ -203,6 +204,24 @@ public sealed class BrushPreset
             AntiAlias = true,
             SizeByPressure = true,
             OpacityByPressure = false
+        }
+    };
+
+    public static BrushPreset DefaultWillowLeaf() => new()
+    {
+        Name = "WillowLeaf",
+        Kind = BrushToolKind.WillowLeaf,
+        Params = new BrushParameters
+        {
+            SizePx = 14f,
+            MinSizeRatio = 0.06f,
+            Opacity = 0.92f,
+            Hardness = 0.88f,
+            SoftEdge = 0.08f,
+            Spacing = 0.06f,
+            AntiAlias = true,
+            SizeByPressure = true,
+            OpacityByPressure = true
         }
     };
 }

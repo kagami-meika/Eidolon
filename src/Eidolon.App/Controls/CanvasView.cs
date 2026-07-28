@@ -187,9 +187,8 @@ public sealed class CanvasView : FrameworkElement
     {
         Focusable = true;
         ImeInput.ConfigureForCanvas(this);
-        // Crisp pixels when zoomed (no bilinear blur)
-        RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.NearestNeighbor);
-        RenderOptions.SetEdgeMode(this, EdgeMode.Aliased);
+        // Default: crisp pixels when zoomed in. Zoomed-out mode is applied in OnRender.
+        ApplyViewportBitmapScaling(_viewport.Scale);
         Stylus.SetIsPressAndHoldEnabled(this, false);
         Stylus.SetIsFlicksEnabled(this, false);
         Stylus.SetIsTapFeedbackEnabled(this, false);
@@ -312,7 +311,25 @@ public sealed class CanvasView : FrameworkElement
         _stride = Document.Width * 4;
         _pixels = new byte[_stride * Document.Height];
         _bitmap = new WriteableBitmap(Document.Width, Document.Height, 96, 96, PixelFormats.Pbgra32, null);
-        RenderOptions.SetBitmapScalingMode(_bitmap, BitmapScalingMode.NearestNeighbor);
+        ApplyViewportBitmapScaling(_viewport.Scale);
+    }
+
+    /// <summary>
+    /// Zoomed in: nearest-neighbor (pixel-crisp). Zoomed out: high-quality Fant
+    /// resampling (WPF's best downscale; Lanczos-like smoothness, no blocky shrink).
+    /// </summary>
+    private void ApplyViewportBitmapScaling(float scale)
+    {
+        // WPF has no true Lanczos kernel; HighQuality maps to Fant polyphase filtering,
+        // which is the intended high-quality downscale path for canvas preview.
+        var mode = scale < 0.999f
+            ? BitmapScalingMode.HighQuality
+            : BitmapScalingMode.NearestNeighbor;
+        RenderOptions.SetBitmapScalingMode(this, mode);
+        if (_bitmap is not null)
+            RenderOptions.SetBitmapScalingMode(_bitmap, mode);
+        // Aliased edges help integer zooms; let the smoother path anti-alias when shrinking.
+        RenderOptions.SetEdgeMode(this, scale < 0.999f ? EdgeMode.Unspecified : EdgeMode.Aliased);
     }
 
     private int _hudFrameSkip;
@@ -356,6 +373,7 @@ public sealed class CanvasView : FrameworkElement
         var m = _viewport.CreateMatrix((float)ActualWidth, (float)ActualHeight, Document.Width, Document.Height);
         // Snap translation when scale is near-integer for sharper pixels
         float sc = _viewport.Scale;
+        ApplyViewportBitmapScaling(sc);
         if (Math.Abs(sc - MathF.Round(sc)) < 0.001f && sc >= 1f)
         {
             double dpi = VisualTreeHelper.GetDpi(this).PixelsPerDip;
@@ -369,7 +387,10 @@ public sealed class CanvasView : FrameworkElement
         if (Document.Background.Kind == DocumentBackgroundKind.Transparent)
             dc.DrawRectangle(CreateCheckerBrush(), null, new Rect(0, 0, Document.Width, Document.Height));
 
-        // Pixel-crisp blit: ImageBrush + NearestNeighbor (DrawImage also inherits element mode)
+        // Document blit: NN when zoomed in, HighQuality (Fant) when zoomed out.
+        var scaleMode = sc < 0.999f
+            ? BitmapScalingMode.HighQuality
+            : BitmapScalingMode.NearestNeighbor;
         var imgBrush = new ImageBrush(_bitmap)
         {
             Stretch = Stretch.Fill,
@@ -379,7 +400,7 @@ public sealed class CanvasView : FrameworkElement
             ViewportUnits = BrushMappingMode.Absolute,
             TileMode = TileMode.None
         };
-        RenderOptions.SetBitmapScalingMode(imgBrush, BitmapScalingMode.NearestNeighbor);
+        RenderOptions.SetBitmapScalingMode(imgBrush, scaleMode);
         dc.DrawRectangle(imgBrush, null, new Rect(0, 0, Document.Width, Document.Height));
         DrawSelectionOverlay(dc);
         DrawToolPreview(dc);
@@ -2296,7 +2317,8 @@ public sealed class CanvasView : FrameworkElement
         _straightOrigin = first.DocumentPos;
         Document.Rulers.BeginStrokeConstraint(first.DocumentPos);
 
-        _stroke = new StrokeSession(Document, layer, strokePreset, Document.Colors.Foreground, _stabilizer);
+        _stroke = new StrokeSession(Document, layer, strokePreset, Document.Colors.Foreground, _stabilizer,
+            AppSettings.Current.WillowOverlap);
         _stroke.Begin(first);
         RedrawDirty(_stroke.DirtyRect);
 
@@ -2305,7 +2327,8 @@ public sealed class CanvasView : FrameworkElement
         {
             var mpos = Document.Rulers.MirrorAcrossSymmetry(first.DocumentPos);
             var msample = new PointerSample(first.TimeSec, mpos, first.Pressure, first.Phase);
-            _mirrorStroke = new StrokeSession(Document, layer, strokePreset, Document.Colors.Foreground, _stabilizer);
+            _mirrorStroke = new StrokeSession(Document, layer, strokePreset, Document.Colors.Foreground, _stabilizer,
+                AppSettings.Current.WillowOverlap);
             _mirrorStroke.Begin(msample);
             RedrawDirty(_mirrorStroke.DirtyRect);
         }

@@ -12,3 +12,6 @@ artifacts/*
 
 Logs/*
 !Logs/.gitkeep
+
+参考/*
+ForLLM/*

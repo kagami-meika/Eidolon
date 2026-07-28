@@ -129,3 +129,64 @@ public sealed class VectorLayerEditCommand : IDocumentCommand
         layer.ReplaceStrokes(strokes);
     }
 }
+
+/// <summary>Frame layer rect list snapshot.</summary>
+public sealed class FrameLayerEditCommand : IDocumentCommand
+{
+    private readonly Guid _layerId;
+    private readonly List<FrameRect> _before;
+    private readonly List<FrameRect> _after;
+
+    public FrameLayerEditCommand(Guid layerId, List<FrameRect> before, List<FrameRect> after, string name = "Frame")
+    {
+        _layerId = layerId;
+        _before = before;
+        _after = after;
+        Name = name;
+    }
+
+    public string Name { get; }
+
+    public void Undo(Document doc) => Apply(doc, _before);
+    public void Redo(Document doc) => Apply(doc, _after);
+
+    private void Apply(Document doc, List<FrameRect> frames)
+    {
+        if (doc.FindLayer(_layerId) is not FrameLayer layer)
+            return;
+        layer.Frames.Clear();
+        foreach (var f in frames)
+            layer.Frames.Add(new FrameRect { Id = f.Id, Bounds = f.Bounds });
+        layer.InvalidateCache();
+    }
+}
+
+/// <summary>Text layer content snapshot.</summary>
+public sealed class TextLayerEditCommand : IDocumentCommand
+{
+    private readonly Guid _layerId;
+    private readonly string _before;
+    private readonly string _after;
+
+    public TextLayerEditCommand(Guid layerId, string before, string after, string name = "Text")
+    {
+        _layerId = layerId;
+        _before = before;
+        _after = after;
+        Name = name;
+    }
+
+    public string Name { get; }
+
+    public void Undo(Document doc) => Apply(doc, _before);
+    public void Redo(Document doc) => Apply(doc, _after);
+
+    private void Apply(Document doc, string content)
+    {
+        if (doc.FindLayer(_layerId) is not TextLayer layer)
+            return;
+        layer.Content = content;
+        layer.CacheDirty = true;
+        layer.RasterCache = null;
+    }
+}

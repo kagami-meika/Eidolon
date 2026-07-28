@@ -24,8 +24,13 @@ UI 通过 `LocalizeBrushName` / i18n 键 `Tool.*` 显示。
 ## 笔划生命周期
 
 1. `Begin`：记录 before tiles，首点 dab
-2. `Move`：稳定器 + 间距插值 dab，累积 dirty
+2. `Move`：位置稳定器 + **独立压感稳定器** + 间距插值 dab（压感沿段插值），累积 dirty
 3. `End`：after tiles → `TileEditCommand("Stroke")`
+
+## 稳定器
+
+`Stabilizer` 对 **位置** 与 **压感** 使用同一 strength，但为 **两条独立 lag 通道**（`Filter` / `FilterPressure`），互不耦合。  
+标尺只约束位置；压感仍走独立平滑，避免沿轨迹的粗细/透明度台阶。
 
 ## 与选区
 

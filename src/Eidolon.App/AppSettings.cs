@@ -54,6 +54,12 @@ public sealed class AppSettings
     /// <summary>Minimum log level (cold-switchable from Settings).</summary>
     public string LogLevel { get; set; } = "Info";
 
+    // Brush
+    /// <summary>WillowLeaf: when true, closed region is solid-filled (non-zero winding).
+    /// When false, self-overlap inverts vs pre-stroke (even-odd / XOR membership:
+    /// blank → paint, double-covered → restore pre-stroke).</summary>
+    public bool WillowOverlap { get; set; } = true;
+
     // Export
     /// <summary>true = use JPEG quality compression; false = max quality (~100)</summary>
     public bool JpegCompress { get; set; } = true;

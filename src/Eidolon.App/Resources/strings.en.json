@@ -49,6 +49,8 @@
   "Settings.WebpLossless": "WebP lossless",
   "Settings.WebpQuality": "WebP quality",
   "Settings.WebpHint": "WebP export requires ffmpeg (libwebp)",
+  "Settings.Brush": "Brush",
+  "Settings.WillowOverlap": "Willow leaf fill overlaps (off=invert)",
 
   "Status.Ready": "Ready",
   "Status.Hint": "RMB eyedropper  ·  X swap  ·  E eraser  ·  Space pan",
@@ -142,6 +144,7 @@
   "Tool.Watercolor": "Watercolor",
   "Tool.Marker": "Marker",
   "Tool.Smudge": "Smudge",
+  "Tool.WillowLeaf": "Willow leaf",
   "Tool.FillBucket": "Fill",
   "Tool.RectSelect": "Rect select",
   "Tool.Lasso": "Lasso",
@@ -170,6 +173,7 @@
   "Brush.AntiAlias": "Anti-alias",
   "Brush.LockAlpha": "Lock alpha",
   "Brush.Straight": "Straight",
+  "Brush.WillowOverlap": "Fill overlaps (off=invert)",
 
   "Layer.Opacity": "Opacity",
   "Layer.Blend": "Blend",
@@ -181,6 +185,7 @@
   "Layer.NewFrame": "Frame",
   "Layer.Delete": "Delete",
   "Layer.Refresh": "Refresh",
+  "Layer.Clear": "Clear",
   "Layer.KeepOne": "Keep at least one layer.",
   "Layer.Hidden": "(hid) ",
   "Layer.Clipped": " [clip]",

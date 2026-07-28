@@ -29,6 +29,7 @@ public sealed class SettingsWindow : Window
     private readonly CheckBox _exportAlpha;
     private readonly ComboBox _language;
     private readonly ComboBox _logLevel;
+    private readonly CheckBox _willowOverlap;
 
     public SettingsWindow()
     {
@@ -157,6 +158,16 @@ public sealed class SettingsWindow : Window
             }
         };
         body.Children.Add(_logLevel);
+
+        // Brush global settings
+        body.Children.Add(Section(SR.Get("Settings.Brush")));
+        _willowOverlap = new CheckBox
+        {
+            Content = SR.Get("Settings.WillowOverlap"),
+            IsChecked = s.WillowOverlap,
+            Margin = new Thickness(0, 0, 0, 8)
+        };
+        body.Children.Add(_willowOverlap);
 
         // Timelapse
         body.Children.Add(Section(SR.Get("Settings.Timelapse")));
@@ -299,6 +310,7 @@ public sealed class SettingsWindow : Window
                 WebpLossless = _webpLossless.IsChecked == true,
                 WebpQuality = (int)_webpQuality.Value,
                 ExportPreserveTransparency = _exportAlpha.IsChecked == true,
+                WillowOverlap = _willowOverlap.IsChecked == true,
                 Brush = AppSettings.Current.Brush,
                 Colors = AppSettings.Current.Colors,
                 LogLevel = AppSettings.Current.LogLevel

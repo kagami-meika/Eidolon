@@ -49,6 +49,8 @@
   "Settings.WebpLossless": "WebP 无损",
   "Settings.WebpQuality": "WebP 质量",
   "Settings.WebpHint": "WebP 导出需要 ffmpeg（libwebp）",
+  "Settings.Brush": "画笔",
+  "Settings.WillowOverlap": "柳叶笔重叠部分上色（关=重叠反转）",
 
   "Status.Ready": "就绪",
   "Status.Hint": "右键吸管  ·  X换色  ·  E橡皮  ·  空格平移",
@@ -142,6 +144,7 @@
   "Tool.Watercolor": "水彩",
   "Tool.Marker": "马克笔",
   "Tool.Smudge": "涂抹",
+  "Tool.WillowLeaf": "柳叶笔",
   "Tool.FillBucket": "填充桶",
   "Tool.RectSelect": "矩形选区",
   "Tool.Lasso": "套索",
@@ -170,6 +173,7 @@
   "Brush.AntiAlias": "抗锯齿",
   "Brush.LockAlpha": "锁透明",
   "Brush.Straight": "直线",
+  "Brush.WillowOverlap": "重叠部分上色（关=反转）",
 
   "Layer.Opacity": "不透明度",
   "Layer.Blend": "混合",
@@ -181,6 +185,7 @@
   "Layer.NewFrame": "分格",
   "Layer.Delete": "删除",
   "Layer.Refresh": "刷新",
+  "Layer.Clear": "清空",
   "Layer.KeepOne": "至少保留一个图层。",
   "Layer.Hidden": "(隐) ",
   "Layer.Clipped": " [剪贴]",

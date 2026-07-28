@@ -27,7 +27,9 @@
 4. `OnRender`：
    - 画布灰底
    - `ViewportState` 矩阵（缩放/平移/旋转/镜像）
-   - 文档位图（NearestNeighbor）
+   - 文档位图缩放模式：
+     - **放大 / ≥100%**：`NearestNeighbor`（像素锐利）
+     - **缩小**：`HighQuality`（WPF Fant 多相滤波，接近 Lanczos 的平滑降采样；WPF 无原生 Lanczos 核）
    - 选区蚂蚁线、工具预览、标尺叠加
    - 屏幕空间压感 HUD
 
