@@ -38,17 +38,20 @@ public sealed class StrokeSession
 
 	private IntRect _willowLastFillRect;
 
-	private const float WillowMinPointDist = 1.5f;
+	// Min distance before committing a new willow vertex (was 1.5px; swallowed micro moves).
+	private const float WillowMinPointDist = 0.35f;
+	private const float WillowMinPointDist2 = WillowMinPointDist * WillowMinPointDist;
+	// Below this, treat as pure noise / no motion (still update last tip if above eps).
+	private const float WillowNoiseDist2 = 1e-8f;
 
-	private const int WillowPreviewMaxPoints = 256;
+	// Preview downsample budget. Uniform index thinning caused edge twitch on long paths;
+	// radial / curvature-aware simplify keeps silhouette stable while capping cost.
+	private const int WillowPreviewMaxPoints = 1024;
 
 	// Geometric densify target for Willow fill edges (~sub-pixel chords).
-
 	private const float WillowDensifyMaxSeg = 0.75f;
-
-	private const int WillowDensifyMaxPreview = 1536;
-
-	private const int WillowDensifyMaxFinal = 6144;
+	private const int WillowDensifyMaxPreview = 4096;
+	private const int WillowDensifyMaxFinal = 16384;
 
 	private List<Float2>? _willowDensified;
 
@@ -139,25 +142,38 @@ public sealed class StrokeSession
 		if (_willowPath != null)
 		{
 			double timeSec = sample.TimeSec;
-			Float2 @float = _stabilizer.Filter(sample.DocumentPos, timeSec);
-			List<Float2>? willowPath = _willowPath;
-			Float2 float2 = willowPath[willowPath.Count - 1];
-			float num = @float.X - float2.X;
-			float num2 = @float.Y - float2.Y;
-			if (_willowPath.Count == 1 || num * num + num2 * num2 >= 2.25f)
+			Float2 filtered = _stabilizer.Filter(sample.DocumentPos, timeSec);
+			List<Float2> willowPath = _willowPath;
+			Float2 last = willowPath[willowPath.Count - 1];
+			float dx = filtered.X - last.X;
+			float dy = filtered.Y - last.Y;
+			float dist2 = dx * dx + dy * dy;
+			// Always keep the live tip; only require a tiny commit distance so
+			// micro-region scribbling still builds a real polyline (not one sliding vertex).
+			if (willowPath.Count == 1)
 			{
-				_willowPath.Add(@float);
+				if (dist2 > WillowNoiseDist2)
+					willowPath.Add(filtered);
+				else
+					willowPath[0] = filtered;
 			}
-			else
+			else if (dist2 >= WillowMinPointDist2)
 			{
-				List<Float2>? willowPath2 = _willowPath;
-				willowPath2[willowPath2.Count - 1] = @float;
+				willowPath.Add(filtered);
 			}
-			if (_willowPath.Count >= 3)
+			else if (dist2 > WillowNoiseDist2)
 			{
-				bool flag = _willowPath.Count <= 8;
-				double num3 = ((_willowPath.Count > 300) ? 0.05 : ((_willowPath.Count > 120) ? 0.033 : 0.016));
-				if (flag || timeSec - _willowLastFillTime >= num3)
+				willowPath[willowPath.Count - 1] = filtered;
+			}
+			if (willowPath.Count >= 3)
+			{
+				// Slightly more frequent early previews; long paths stay throttled for cost.
+				bool force = willowPath.Count <= 12;
+				double interval = willowPath.Count > 600 ? 0.04
+					: willowPath.Count > 250 ? 0.028
+					: willowPath.Count > 80 ? 0.02
+					: 0.014;
+				if (force || timeSec - _willowLastFillTime >= interval)
 				{
 					_willowLastFillTime = timeSec;
 					WillowIncrementalFill(preview: true);
@@ -562,22 +578,148 @@ public sealed class StrokeSession
 		}
 	}
 
+	/// <summary>
+	/// Downsample a long willow path for live preview without uniform index thinning
+	/// (which made edges twitch as new points shifted which vertices survived).
+	/// Keeps endpoints + high-curvature / high-radial-extent vertices by score.
+	/// </summary>
 	private static List<Float2> BuildWillowPreviewPath(List<Float2> path, int maxPoints)
 	{
 		int count = path.Count;
-		if (count <= maxPoints)
-		{
+		if (count <= maxPoints || maxPoints < 3)
 			return path;
-		}
-		List<Float2> list = new List<Float2>(maxPoints);
-		int num = maxPoints - 1;
-		for (int i = 0; i < num; i++)
+
+		// Centroid for radial extent (outer silhouette matters most for fill edges).
+		double cx = 0, cy = 0;
+		for (int i = 0; i < count; i++)
 		{
-			int index = (int)((long)i * (long)(count - 2) / (num - 1));
-			list.Add(path[index]);
+			cx += path[i].X;
+			cy += path[i].Y;
 		}
-		list.Add(path[count - 1]);
-		return list;
+		cx /= count;
+		cy /= count;
+
+		// Score interior vertices: turn angle * (1 + radial weight).
+		// Reuse a small scratch array of (score, index); sort descending and take top.
+		int interior = count - 2;
+		int keepInterior = Math.Max(1, maxPoints - 2);
+		if (keepInterior >= interior)
+			return path;
+
+		var scored = new (float score, int index)[interior];
+		for (int i = 1; i < count - 1; i++)
+		{
+			Float2 a = path[i - 1];
+			Float2 b = path[i];
+			Float2 c = path[i + 1];
+			float ax = b.X - a.X, ay = b.Y - a.Y;
+			float bx = c.X - b.X, by = c.Y - b.Y;
+			float al = MathF.Sqrt(ax * ax + ay * ay);
+			float bl = MathF.Sqrt(bx * bx + by * by);
+			float turn = 0f;
+			if (al > 1e-6f && bl > 1e-6f)
+			{
+				float inv = 1f / (al * bl);
+				float dot = Math.Clamp((ax * bx + ay * by) * inv, -1f, 1f);
+				// 0 = straight, 2 = reverse; prefer corners.
+				turn = 1f - dot;
+				// Cross magnitude boosts sharp kinks over gentle bends of same cos.
+				float cross = MathF.Abs(ax * by - ay * bx) * inv;
+				turn = turn + cross;
+			}
+			float rdx = b.X - (float)cx;
+			float rdy = b.Y - (float)cy;
+			float radial = MathF.Sqrt(rdx * rdx + rdy * rdy);
+			// Mild length prior so long legs are not entirely dropped between corners.
+			float seg = 0.5f * (al + bl);
+			float score = turn * (1f + 0.08f * radial) + 0.02f * seg;
+			// Tiny index jitter breaks ties stably without path-length-dependent reshuffle.
+			score += (i & 1023) * 1e-7f;
+			scored[i - 1] = (score, i);
+		}
+
+		Array.Sort(scored, static (u, v) => v.score.CompareTo(u.score));
+		var keep = new bool[count];
+		keep[0] = true;
+		keep[count - 1] = true;
+		for (int k = 0; k < keepInterior; k++)
+			keep[scored[k].index] = true;
+
+		// Enforce a minimum along-path spacing among kept points so dense clusters
+		// of high-score samples do not starve distant outline sections.
+		// Second pass: if under-budget gaps exist, fill with max-score remaining in largest gaps.
+		int keptCount = 2 + keepInterior;
+		// Walk and drop over-dense keeps (score already preferred; drop lower-score of pair).
+		const float minKeepChord = 1.25f;
+		const float minKeepChord2 = minKeepChord * minKeepChord;
+		int prevKeep = 0;
+		for (int i = 1; i < count - 1; i++)
+		{
+			if (!keep[i]) continue;
+			float ddx = path[i].X - path[prevKeep].X;
+			float ddy = path[i].Y - path[prevKeep].Y;
+			if (ddx * ddx + ddy * ddy < minKeepChord2)
+			{
+				// Drop the lower-score of the two (endpoints never dropped here).
+				float sPrev = prevKeep == 0 ? float.PositiveInfinity : ScoreOf(scored, prevKeep);
+				float sCur = ScoreOf(scored, i);
+				if (sCur < sPrev)
+				{
+					keep[i] = false;
+					keptCount--;
+					continue;
+				}
+				if (prevKeep != 0)
+				{
+					keep[prevKeep] = false;
+					keptCount--;
+				}
+			}
+			prevKeep = i;
+		}
+
+		// Refill free slots from remaining high-score vertices in spatial gaps.
+		if (keptCount < maxPoints)
+		{
+			for (int k = 0; k < interior && keptCount < maxPoints; k++)
+			{
+				int idx = scored[k].index;
+				if (keep[idx]) continue;
+				// Accept if far enough from nearest already-kept neighbor along index.
+				int lo = idx - 1;
+				while (lo > 0 && !keep[lo]) lo--;
+				int hi = idx + 1;
+				while (hi < count - 1 && !keep[hi]) hi++;
+				float dLoX = path[idx].X - path[lo].X, dLoY = path[idx].Y - path[lo].Y;
+				float dHiX = path[hi].X - path[idx].X, dHiY = path[hi].Y - path[idx].Y;
+				float dLo2 = dLoX * dLoX + dLoY * dLoY;
+				float dHi2 = dHiX * dHiX + dHiY * dHiY;
+				if (dLo2 >= minKeepChord2 && dHi2 >= minKeepChord2)
+				{
+					keep[idx] = true;
+					keptCount++;
+				}
+			}
+		}
+
+		var list = new List<Float2>(keptCount);
+		for (int i = 0; i < count; i++)
+		{
+			if (keep[i])
+				list.Add(path[i]);
+		}
+		return list.Count >= 3 ? list : path;
+	}
+
+	private static float ScoreOf((float score, int index)[] scored, int pathIndex)
+	{
+		// scored is ordered by score, not index — linear scan is fine (preview only, ≤ path length).
+		for (int i = 0; i < scored.Length; i++)
+		{
+			if (scored[i].index == pathIndex)
+				return scored[i].score;
+		}
+		return 0f;
 	}
 
 	/// <summary>

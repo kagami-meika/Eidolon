@@ -1,11 +1,11 @@
 {
-  "App.Title": "Eidolon v0.2.1",
-  "App.Version": "v0.2.1",
+  "App.Title": "Eidolon v0.2.2.0",
+  "App.Version": "v0.2.2.0",
   "App.InitFailed": "初始化窗口失败：\n{0}\n\n日志：\n{1}",
   "App.StartupFailed": "启动失败，详见日志：\n{0}\n\n{1}",
   "App.UnhandledError": "发生未处理错误，程序可能不稳定。\n日志：\n{0}\n\n{1}",
   "App.AboutTitle": "关于 Eidolon",
-  "App.AboutBody": "Eidolon  v0.2.1\n开源绘画工具",
+  "App.AboutBody": "Eidolon  v0.2.2.0\n开源绘画工具",
 
   "Common.Ok": "确定",
   "Common.Cancel": "取消",

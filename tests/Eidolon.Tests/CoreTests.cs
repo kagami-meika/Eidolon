@@ -171,6 +171,65 @@ public class CoreTests
     }
 
     [Fact]
+    public void WillowLeaf_MicroMoves_CommitMultipleVertices()
+    {
+        // Old 1.5px threshold collapsed tiny scribbles into a single sliding tip.
+        var doc = new Document(64, 64);
+        var layer = doc.ActiveRasterLayer!;
+        var preset = BrushPreset.DefaultWillowLeaf();
+        preset.Params.Opacity = 1f;
+        var session = new StrokeSession(doc, layer, preset, ColorRgba8.Black, 0, willowOverlap: true);
+        session.Begin(new PointerSample(0, new Float2(20, 20), 1, PointerPhase.Press));
+        // Zigzag inside a ~2px box with sub-threshold steps under the old 1.5px rule.
+        Float2[] pts =
+        {
+            new(20.4f, 20.0f), new(20.8f, 20.4f), new(20.4f, 20.8f), new(20.0f, 21.2f),
+            new(20.4f, 21.6f), new(20.8f, 22.0f), new(21.2f, 21.6f), new(21.6f, 21.2f),
+            new(22.0f, 20.8f), new(22.4f, 20.4f), new(22.8f, 20.0f), new(23.2f, 20.4f),
+            new(23.6f, 20.8f), new(24.0f, 21.2f), new(24.0f, 24.0f), new(20.0f, 24.0f),
+        };
+        for (int i = 0; i < pts.Length; i++)
+            session.Move(new PointerSample(0.01 * (i + 1), pts[i], 1, PointerPhase.Move));
+        Assert.NotNull(session.End());
+        // Closed micro-scribble + return should paint a small interior blob, not nothing.
+        int painted = 0;
+        for (int y = 19; y <= 25; y++)
+        for (int x = 19; x <= 25; x++)
+            if (layer.Surface.GetPixel(x, y).A > 100) painted++;
+        Assert.True(painted >= 6, $"micro moves failed to build fill (painted={painted})");
+    }
+
+    [Fact]
+    public void WillowLeaf_LongPath_PreviewDoesNotEraseEarlierFill()
+    {
+        // Long path used to re-thin preview vertices by uniform index → silhouette twitch.
+        // After many samples the early lobe must still be solid on final (and stay during stroke).
+        var doc = new Document(128, 128);
+        var layer = doc.ActiveRasterLayer!;
+        var preset = BrushPreset.DefaultWillowLeaf();
+        preset.Params.Opacity = 1f;
+        var session = new StrokeSession(doc, layer, preset, ColorRgba8.Black, 0, willowOverlap: true);
+        session.Begin(new PointerSample(0, new Float2(20, 20), 1, PointerPhase.Press));
+        // First: a clear rectangle lobe.
+        session.Move(new PointerSample(0.01, new Float2(50, 20), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.02, new Float2(50, 50), 1, PointerPhase.Move));
+        session.Move(new PointerSample(0.03, new Float2(20, 50), 1, PointerPhase.Move));
+        // Then a long tail that pushes path well past preview budget.
+        for (int i = 1; i <= 500; i++)
+        {
+            float t = i / 500f;
+            float x = 20f + t * 90f;
+            float y = 50f + 18f * MathF.Sin(t * MathF.PI * 8f);
+            session.Move(new PointerSample(0.03 + i * 0.002, new Float2(x, y), 1, PointerPhase.Move));
+        }
+        // Close roughly back near start so fill has area.
+        session.Move(new PointerSample(1.2, new Float2(20, 20), 1, PointerPhase.Move));
+        Assert.NotNull(session.End());
+        // Early rectangle interior should remain filled after the long tail.
+        Assert.True(layer.Surface.GetPixel(35, 35).A > 200, "early lobe lost after long path");
+    }
+
+    [Fact]
     public void Stabilizer_PressureIsSeparateChannel()
     {
         var stab = new Stabilizer();

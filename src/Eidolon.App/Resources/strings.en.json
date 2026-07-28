@@ -1,11 +1,11 @@
 {
-  "App.Title": "Eidolon v0.2.1",
-  "App.Version": "v0.2.1",
+  "App.Title": "Eidolon v0.2.2.0",
+  "App.Version": "v0.2.2.0",
   "App.InitFailed": "Window init failed:\n{0}\n\nLog:\n{1}",
   "App.StartupFailed": "Startup failed. See log:\n{0}\n\n{1}",
   "App.UnhandledError": "Unhandled error. App may be unstable.\nLog:\n{0}\n\n{1}",
   "App.AboutTitle": "About Eidolon",
-  "App.AboutBody": "Eidolon  v0.2.1\nOpen-source painting tool",
+  "App.AboutBody": "Eidolon  v0.2.2.0\nOpen-source painting tool",
 
   "Common.Ok": "OK",
   "Common.Cancel": "Cancel",
